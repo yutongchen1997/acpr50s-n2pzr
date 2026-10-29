@@ -452,6 +452,12 @@ module control_mod
     character(len=20) :: outdir
     ! path for outputs
     character(len=50) :: path4outdir
+    ! file id string
+    character(len=20) :: fileid
+    ! column id string
+    character(len=20) :: columnid
+    ! system command string
+    character(len=20) :: command
 
 
 
