@@ -452,7 +452,8 @@ module control_mod
     character(len=20) :: outdir
     ! path for outputs
     character(len=50) :: path4outdir
-
+    ! file id string
+    character(len=250):: fileid
 
 
 
