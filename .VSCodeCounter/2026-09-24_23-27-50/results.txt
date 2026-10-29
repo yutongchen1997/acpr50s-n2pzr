@@ -1,0 +1,44 @@
+Date : 2026-09-24 23:27:50
+Directory : /home/yutong/Desktop/acpr50s-pzr
+Total : 19 files,  1158 codes, 607 comments, 230 blanks, all 1995 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| Fortran  |         18 |      1,126 |        592 |        216 |      1,934 |
+| Makefile |          1 |         32 |         15 |         14 |         61 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                 | files      | code       | comment    | blank      | total      |
++------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                    |         19 |      1,158 |        607 |        230 |      1,995 |
++------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                             | language | code       | comment    | blank      | total      |
++------------------------------------------------------+----------+------------+------------+------------+------------+
+| /home/yutong/Desktop/acpr50s-pzr/A0_acprpzr_fmod.f90 | Fortran  |        239 |         53 |         74 |        366 |
+| /home/yutong/Desktop/acpr50s-pzr/A1_rescomp_mod.f90  | Fortran  |         32 |         27 |         18 |         77 |
+| /home/yutong/Desktop/acpr50s-pzr/A2_control_mod.f90  | Fortran  |         33 |         49 |         17 |         99 |
+| /home/yutong/Desktop/acpr50s-pzr/A2_mfcoupl_mod.f90  | Fortran  |          0 |          0 |          1 |          1 |
+| /home/yutong/Desktop/acpr50s-pzr/B0_systdat_mod.f90  | Fortran  |          4 |          9 |          1 |         14 |
+| /home/yutong/Desktop/acpr50s-pzr/B1_fludomn_mod.f90  | Fortran  |        151 |         49 |         18 |        218 |
+| /home/yutong/Desktop/acpr50s-pzr/B1_slddomn_mod.f90  | Fortran  |          9 |          9 |          6 |         24 |
+| /home/yutong/Desktop/acpr50s-pzr/B2_flubndc_mod.f90  | Fortran  |         41 |         29 |         11 |         81 |
+| /home/yutong/Desktop/acpr50s-pzr/B2_flujunc_mod.f90  | Fortran  |         29 |         22 |          6 |         57 |
+| /home/yutong/Desktop/acpr50s-pzr/B2_heatstr_mod.f90  | Fortran  |          8 |          9 |          9 |         26 |
+| /home/yutong/Desktop/acpr50s-pzr/B2_pvessel_mod.f90  | Fortran  |         79 |         47 |          8 |        134 |
+| /home/yutong/Desktop/acpr50s-pzr/B2_sldbndc_mod.f90  | Fortran  |          4 |          9 |          2 |         15 |
+| /home/yutong/Desktop/acpr50s-pzr/B3_ctlsgnl_mod.f90  | Fortran  |         37 |         18 |          5 |         60 |
+| /home/yutong/Desktop/acpr50s-pzr/C0_corrsub_mod.f90  | Fortran  |        198 |        136 |         14 |        348 |
+| /home/yutong/Desktop/acpr50s-pzr/C1_interpo_mod.f90  | Fortran  |         70 |         33 |          4 |        107 |
+| /home/yutong/Desktop/acpr50s-pzr/C1_readdat_mod.f90  | Fortran  |         99 |         52 |          4 |        155 |
+| /home/yutong/Desktop/acpr50s-pzr/C2_globdat_mod.f90  | Fortran  |         63 |         27 |          3 |         93 |
+| /home/yutong/Desktop/acpr50s-pzr/Makefile            | Makefile |         32 |         15 |         14 |         61 |
+| /home/yutong/Desktop/acpr50s-pzr/ZZBL_fmod.f90       | Fortran  |         30 |         14 |         15 |         59 |
+| Total                                                |          |      1,158 |        607 |        230 |      1,995 |
++------------------------------------------------------+----------+------------+------------+------------+------------+
