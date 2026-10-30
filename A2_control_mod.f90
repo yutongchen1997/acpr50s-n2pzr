@@ -467,6 +467,18 @@ module control_mod
     integer(c_int) :: year, month, day, hour, minute, second
 
     !======= Internals ============
+    ! the primary output directory
+    syscmd = 'mkdir -p '//'output'
+    call SYSTEM(syscmd, istatus)
+    ! the path for results
+    call DATE_AND_TIME(VALUES = time_arr)
+    year  = time_arr(1)
+    month = time_arr(2)
+    day   = time_arr(3)
+    hour  = time_arr(5)
+    minute= time_arr(6)
+    second= time_arr(7)
+    write(path4outdir, 100)
 
 
 
