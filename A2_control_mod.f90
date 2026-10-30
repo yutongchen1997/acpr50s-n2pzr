@@ -472,17 +472,60 @@ module control_mod
     call SYSTEM(syscmd, istatus)
     ! the path for results
     call DATE_AND_TIME(VALUES = time_arr)
-    year  = time_arr(1)
-    month = time_arr(2)
-    day   = time_arr(3)
-    hour  = time_arr(5)
-    minute= time_arr(6)
-    second= time_arr(7)
-    write(path4outdir, 100)
+    year  = time_arr(1) ! 4
+    month = time_arr(2) ! 2
+    day   = time_arr(3) ! 2
+    hour  = time_arr(5) ! 2
+    minute= time_arr(6) ! 2
+    second= time_arr(7) ! 2
+    write(outdir, 100) year,'-',month,'-',day,'-',hour,'-',minute,'-',second
+    path4outdir = 'output'//'/'//ADJUSTL(TRIM(outdir))
+    syscmd = 'mkdir '//path4outdir
+    call SYSTEM(syscmd, istatus)
+    k = 1 ! k serves as the pointer for output file unit
+    ! open fluid output files
+    if(solve_fluid) then
+      syscmd = 'mkdir '//ADJUSTL(TRIM(path4outdir))//'/'//'fluid'
+      call SYSTEM(syscmd, istatus)
+      if(istatus /= 0) then
+        print*, 'Failed to creat output directory for fluid, check your permession.'
+      else
+        print*, 'Output directory created successfully for fluid.'
+      end if
+      ! open output .dat files relative to fluid boundary cells
+      do i = 1, system_glo%fluid%nbndc
+        ! fluid temperature
+        write(fileid,110) 'bndc-temperature-',ADJUSTL(TRIM(system_glo%fluid%bndcs(i)%id)),'.dat'
+        open(unit=otpfu+k, file=ADJUSTL(TRIM(path4outdir))//'/'//'fluid'//'/'//ADJUSTL(TRIM(fileid)), &
+        status='new', form='formatted')
+        colid = 'time'
+        write(otpfu+k,'(A18)',advance='no')colid
+        colid = 'temperature'
+        write(otpfu+k,'(A18)',advance='no')colid
+        write(otpfu+k,*)''
+        k = k + 1
+        ! fluid pressure
+        write(fileid,110) 'bndc-pressure-',ADJUSTL(TRIM(system_glo%fluid%bndcs(i)%id)),'.dat'
+        open(unit=otpfu+k, file=ADJUSTL(TRIM(path4outdir))//'/'//'fluid'//'/'//ADJUSTL(TRIM(fileid)), &
+        status='new', form='formatted')
+        colid = 'time'
+        write(otpfu+k,'(A18)',advance='no')colid
+        colid = 'pressure'
+        write(otpfu+k,'(A18)',advance='no')colid
+        write(otpfu+k,*)''
+        k = k + 1
+      end do
+      ! open output .dat files relative to pressure vessel fluid
+      do i = system_glo%fluid%npzrv
+
+      end do
+
+    end if
 
 
-
-
+100 format(I4.4, A1, I2.2, A1, I2.2, A1, I2.2, A1, I2.2, A1, I2.2)
+110 format(A, A, A)
+120 format(A, I2.2)
   end subroutine open_output_files
 
 ! ----------------------------------------------------------------------
