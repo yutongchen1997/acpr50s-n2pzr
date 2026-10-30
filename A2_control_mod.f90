@@ -453,19 +453,18 @@ module control_mod
     ! path for outputs
     character(len=50) :: path4outdir
     ! file id string
-
+    character(len=250):: fileid
     ! column id string
-
+    character(len=18) :: colid
     ! system command string
-
+    character(len=100):: syscmd
     ! loop counters
-
+    integer(c_int) :: i, j, k
     ! status variable
-
+    integer(c_int) :: istatus
     ! integers recording system time
-
-
-
+    integer(c_int) :: time_arr(8)
+    integer(c_int) :: year, month, day, hour, minute, second
 
     !======= Internals ============
 
@@ -484,7 +483,7 @@ module control_mod
     !== I/O variables ==
     real(c_double), intent(in) :: time
     !== local variables ==
-    character(len=18) :: col_str
+    character(len=18) :: colstr
     integer(c_int) :: i, j, k
 
     !======= Internals ============
