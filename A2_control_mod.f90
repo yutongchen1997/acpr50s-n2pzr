@@ -640,10 +640,23 @@ module control_mod
         write(otpfu+k,*)''
         k = k + 1
         ! fluid mass
-
+        write(colstr,'(ES18.8e2)')time
+        write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+        write(colstr,'(ES18.8e2)')system_glo%fluid%pzrvs(i)%m_l
+        write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+        write(colstr,'(ES18.8e2)')system_glo%fluid%pzrvs(i)%m_g
+        write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+        write(otpfu+k,*)''
+        k = k + 1
         ! fluid volume
-
-
+        write(colstr,'(ES18.8e2)')time
+        write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+        write(colstr,'(ES18.8e2)')system_glo%fluid%pzrvs(i)%v_l
+        write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+        write(colstr,'(ES18.8e2)')system_glo%fluid%pzrvs(i)%v_g
+        write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+        write(otpfu+k,*)''
+        k = k + 1
         ! fluid pressure
         write(colstr,'(ES18.8e2)')time
         write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
@@ -651,12 +664,14 @@ module control_mod
         write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
         write(otpfu+k,*)''
         k = k + 1
-
-
         ! liquid level
-
+        write(colstr,'(ES18.8e2)')time
+        write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+        write(colstr,'(ES18.8e2)')system_glo%fluid%pzrvs(i)%z_l
+        write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+        write(otpfu+k,*)''
+        k = k + 1
       end do
-
       ! fluid junction mass flowrates
       write(colstr,'(ES18.8e2)')time
       write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
@@ -666,7 +681,6 @@ module control_mod
       end do
       write(otpfu+k,*)''
       k = k + 1
-
 
     end if
     
