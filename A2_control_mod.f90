@@ -540,11 +540,24 @@ module control_mod
         write(otpfu+k,*)''
         k = k + 1
       end do
+      ! fluid junction mass flowrates
+      fileid = 'mdots.dat'
+      open(unit=otpfu+k, file=ADJUSTL(TRIM(path4outdir))//'/'//'fluid'//'/'//ADJUSTL(TRIM(fileid)), &
+      status='new', form='formatted')
+      colid = 'time'
+      write(otpfu+k,'(A18)',advance='no')colid
+      do i = 1, system_glo%fluid%njunc
+        write(colid,120)'mdot-',ADJUSTL(TRIM(system_glo%fluid%juncs(i)%id))
+        write(otpfu+k,'(A18)',advance='no')colid
+      end do
+      write(otpfu+k,*)''
+      k = k + 1
     end if
 
 
 100 format(I4.4, A1, I2.2, A1, I2.2, A1, I2.2, A1, I2.2, A1, I2.2)
 110 format(A, A, A)
+120 format(A, A)
   end subroutine open_output_files
 
 ! ----------------------------------------------------------------------

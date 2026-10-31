@@ -16,8 +16,8 @@ module flujunc_mod
   type :: flujunc
     !=== Member Variables ===
     ! required input parameters ------------------------------------
-    ! junction type
-    character(len=20) :: typ
+    ! junction id and type
+    character(len=20) :: id, typ
     ! 'from' and 'to' fluid component id string
     character(len=20) :: fid_f, fid_t
     ! signal id (optional)

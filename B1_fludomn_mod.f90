@@ -128,6 +128,7 @@ contains
       ! if found unconnected junctions
       if((.not.junc_f).or.(.not.junc_t)) then
         print*, 'unconnected j-th junction detected, j = ', j
+        print*, 'junciton id = ', self%juncs(j)%id
         stop 'program stopped at init_fludomn'
       end if
     end do
