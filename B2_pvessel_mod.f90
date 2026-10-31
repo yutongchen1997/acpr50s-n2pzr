@@ -15,6 +15,7 @@ module pvessel_mod
   type :: pvessel
     !=== Member Variables === 
     ! required input parameters ------------------------------------
+    character(len=20) :: id
     ! id string of liq and gas section, material of liq and gas
     character(len=20) :: id_l, id_g, mat_l, mat_g
     ! inner diameter, total vessel height

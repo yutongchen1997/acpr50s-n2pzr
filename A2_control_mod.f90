@@ -516,16 +516,35 @@ module control_mod
         k = k + 1
       end do
       ! open output .dat files relative to pressure vessel fluid
-      do i = system_glo%fluid%npzrv
-
+      do i = 1, system_glo%fluid%npzrv
+        ! fluid temperature
+        write(fileid,110) 'pzrv-temperature-',ADJUSTL(TRIM(system_glo%fluid%pzrvs(i)%id)),'.dat'
+        open(unit=otpfu+k, file=ADJUSTL(TRIM(path4outdir))//'/'//'fluid'//'/'//ADJUSTL(TRIM(fileid)), &
+        status='new', form='formatted')
+        colid = 'time'
+        write(otpfu+k,'(A18)',advance='no')colid
+        colid = 'temperature-liq'
+        write(otpfu+k,'(A18)',advance='no')colid
+        colid = 'temperature-gas'
+        write(otpfu+k,'(A18)',advance='no')colid
+        write(otpfu+k,*)''
+        k = k + 1
+        ! fluid pressure
+        write(fileid,110) 'pzrv-pressure-',ADJUSTL(TRIM(system_glo%fluid%bndcs(i)%id)),'.dat'
+        open(unit=otpfu+k, file=ADJUSTL(TRIM(path4outdir))//'/'//'fluid'//'/'//ADJUSTL(TRIM(fileid)), &
+        status='new', form='formatted')
+        colid = 'time'
+        write(otpfu+k,'(A18)',advance='no')colid
+        colid = 'pressure'
+        write(otpfu+k,'(A18)',advance='no')colid
+        write(otpfu+k,*)''
+        k = k + 1
       end do
-
     end if
 
 
 100 format(I4.4, A1, I2.2, A1, I2.2, A1, I2.2, A1, I2.2, A1, I2.2)
 110 format(A, A, A)
-120 format(A, I2.2)
   end subroutine open_output_files
 
 ! ----------------------------------------------------------------------
