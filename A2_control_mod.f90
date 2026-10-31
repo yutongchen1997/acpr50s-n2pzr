@@ -681,17 +681,9 @@ module control_mod
       end do
       write(otpfu+k,*)''
       k = k + 1
-
     end if
     
-
-
   end subroutine print_output_files
-
-
-
-
-
 
 
 end module control_mod
