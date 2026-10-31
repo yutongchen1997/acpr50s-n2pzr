@@ -37,6 +37,7 @@ module pvessel_mod
     real(c_double) :: t_g, t_l  ! gas, liq temperature  - [K]
     real(c_double) :: v_g, v_l  ! gas, liq volume       - [m^3]
     real(c_double) :: p_g       ! gas pressure          - [Pa]
+    real(c_double) :: z_l       ! internal liquid level - [m]
     ! derivatives of dynamic variables
     real(c_double) :: dmgdt, dmldt   ! time derivative of m  - [kg/s]
     real(c_double) :: dhgdt, dhldt   ! time derivative of h  - [J/s]
@@ -44,7 +45,6 @@ module pvessel_mod
     real(c_double) :: dvgdt, dvldt   ! time derivative of v  - [m^3/s]
     real(c_double) :: dpdt           ! time derivative of pg - [Pa/s]
     ! internal variables -------------------------------------------
-    real(c_double) :: z_l     ! internal liquid level   - [m]
     real(c_double) :: htc_i   ! liq - gas interface htc - [W/m^2/K]  
     real(c_double) :: qlg_i   ! liq - gas heating rate  - [W]
   contains  

@@ -539,6 +539,18 @@ module control_mod
         write(otpfu+k,'(A18)',advance='no')colid
         write(otpfu+k,*)''
         k = k + 1
+        ! fluid mass
+
+
+
+        ! fluid volume
+
+
+
+        ! liquid level
+
+
+
       end do
       ! fluid junction mass flowrates
       fileid = 'mdots.dat'
@@ -574,6 +586,65 @@ module control_mod
     integer(c_int) :: i, j, k
 
     !======= Internals ============
+    k = 1 ! k serves as the pointer for output file unit
+    ! write results to fluid output files
+    if(solve_fluid) then
+      ! fluid boundary cells
+      do i = 1, system_glo%fluid%nbndc
+        ! fluid temperature
+        write(colstr,'(ES18.8e2)')time
+        write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+        write(colstr,'(ES18.8e2)')system_glo%fluid%bndcs(i)%tf
+        write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+        write(otpfu+k,*)''
+        k = k + 1
+        ! fluid pressure
+        write(colstr,'(ES18.8e2)')time
+        write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+        write(colstr,'(ES18.8e2)')system_glo%fluid%bndcs(i)%pf
+        write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+        write(otpfu+k,*)''
+        k = k + 1
+      end do
+      ! pressure vessel fluid
+      do i = 1, system_glo%fluid%npzrv
+        ! fluid temperature
+        write(colstr,'(ES18.8e2)')time
+        write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+        write(colstr,'(ES18.8e2)')system_glo%fluid%pzrvs(i)%t_l
+        write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+        write(colstr,'(ES18.8e2)')system_glo%fluid%pzrvs(i)%t_g
+        write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+        write(otpfu+k,*)''
+        k = k + 1
+        ! fluid pressure
+        write(colstr,'(ES18.8e2)')time
+        write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+        write(colstr,'(ES18.8e2)')system_glo%fluid%pzrvs(i)%p_g
+        write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+        write(otpfu+k,*)''
+        k = k + 1
+        ! fluid mass
+
+        ! fluid volume
+
+        ! liquid level
+
+      end do
+
+      ! fluid junction mass flowrates
+      write(colstr,'(ES18.8e2)')time
+      write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+      do i = 1, system_glo%fluid%njunc
+        write(colstr,'(ES18.8e2)')system_glo%fluid%juncs(i)%mdot
+        write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+      end do
+      write(otpfu+k,*)''
+      k = k + 1
+
+
+    end if
+    
 
 
   end subroutine print_output_files
