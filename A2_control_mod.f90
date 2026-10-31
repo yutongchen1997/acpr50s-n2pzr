@@ -518,7 +518,7 @@ module control_mod
       ! open output .dat files relative to pressure vessel fluid
       do i = 1, system_glo%fluid%npzrv
         ! fluid temperature
-        write(fileid,110) 'pzrv-temperature-',ADJUSTL(TRIM(system_glo%fluid%pzrvs(i)%id)),'.dat'
+        write(fileid,110) 'pzrv-fluidtemperature-',ADJUSTL(TRIM(system_glo%fluid%pzrvs(i)%id)),'.dat'
         open(unit=otpfu+k, file=ADJUSTL(TRIM(path4outdir))//'/'//'fluid'//'/'//ADJUSTL(TRIM(fileid)), &
         status='new', form='formatted')
         colid = 'time'
@@ -529,8 +529,32 @@ module control_mod
         write(otpfu+k,'(A18)',advance='no')colid
         write(otpfu+k,*)''
         k = k + 1
+        ! fluid mass
+        write(fileid,110) 'pzrv-fluidmass-',ADJUSTL(TRIM(system_glo%fluid%pzrvs(i)%id)),'.dat'
+        open(unit=otpfu+k, file=ADJUSTL(TRIM(path4outdir))//'/'//'fluid'//'/'//ADJUSTL(TRIM(fileid)), &
+        status='new', form='formatted')
+        colid = 'time'
+        write(otpfu+k,'(A18)',advance='no')colid
+        colid = 'mass-liq'
+        write(otpfu+k,'(A18)',advance='no')colid
+        colid = 'mass-gas'
+        write(otpfu+k,'(A18)',advance='no')colid
+        write(otpfu+k,*)''
+        k = k + 1
+        ! fluid volume
+        write(fileid,110) 'pzrv-fluidvolume-',ADJUSTL(TRIM(system_glo%fluid%pzrvs(i)%id)),'.dat'
+        open(unit=otpfu+k, file=ADJUSTL(TRIM(path4outdir))//'/'//'fluid'//'/'//ADJUSTL(TRIM(fileid)), &
+        status='new', form='formatted')
+        colid = 'time'
+        write(otpfu+k,'(A18)',advance='no')colid
+        colid = 'volume-liq'
+        write(otpfu+k,'(A18)',advance='no')colid
+        colid = 'volume-gas'
+        write(otpfu+k,'(A18)',advance='no')colid
+        write(otpfu+k,*)''
+        k = k + 1
         ! fluid pressure
-        write(fileid,110) 'pzrv-pressure-',ADJUSTL(TRIM(system_glo%fluid%bndcs(i)%id)),'.dat'
+        write(fileid,110) 'pzrv-pressure-',ADJUSTL(TRIM(system_glo%fluid%pzrvs(i)%id)),'.dat'
         open(unit=otpfu+k, file=ADJUSTL(TRIM(path4outdir))//'/'//'fluid'//'/'//ADJUSTL(TRIM(fileid)), &
         status='new', form='formatted')
         colid = 'time'
@@ -539,18 +563,16 @@ module control_mod
         write(otpfu+k,'(A18)',advance='no')colid
         write(otpfu+k,*)''
         k = k + 1
-        ! fluid mass
-
-
-
-        ! fluid volume
-
-
-
         ! liquid level
-
-
-
+        write(fileid,110) 'pzrv-freelevel-',ADJUSTL(TRIM(system_glo%fluid%pzrvs(i)%id)),'.dat'
+        open(unit=otpfu+k, file=ADJUSTL(TRIM(path4outdir))//'/'//'fluid'//'/'//ADJUSTL(TRIM(fileid)), &
+        status='new', form='formatted')
+        colid = 'time'
+        write(otpfu+k,'(A18)',advance='no')colid
+        colid = 'freelevel'
+        write(otpfu+k,'(A18)',advance='no')colid
+        write(otpfu+k,*)''
+        k = k + 1
       end do
       ! fluid junction mass flowrates
       fileid = 'mdots.dat'
@@ -617,6 +639,11 @@ module control_mod
         write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
         write(otpfu+k,*)''
         k = k + 1
+        ! fluid mass
+
+        ! fluid volume
+
+
         ! fluid pressure
         write(colstr,'(ES18.8e2)')time
         write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
@@ -624,9 +651,7 @@ module control_mod
         write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
         write(otpfu+k,*)''
         k = k + 1
-        ! fluid mass
 
-        ! fluid volume
 
         ! liquid level
 
