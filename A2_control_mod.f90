@@ -364,7 +364,6 @@ module control_mod
     integer(c_int) :: i, j
     logical :: pfound, tfound, jfound
 
-
     !======= Internals ============
     do i = 1, system_glo%numsgnl
       ! update the signal values array
