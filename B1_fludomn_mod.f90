@@ -99,7 +99,13 @@ contains
     integer(c_int) :: i, j
     logical :: junc_f, junc_t
     !======= Internals ============
-    allocate(self%bndcs(self%nbndc))
+    ! allocate the arrays storing junction connection information
+    allocate(self%f_ids(self%njunc))
+    allocate(self%t_ids(self%njunc))
+    allocate(self%f_typ(self%njunc))
+    allocate(self%t_typ(self%njunc))
+    allocate(self%f_idx(self%njunc))
+    allocate(self%t_idx(self%njunc))
     ! check if there is a unconnected junction
     do j = 1, self%njunc
       junc_f = .FALSE.
@@ -108,8 +114,14 @@ contains
       do i = 1, self%nbndc  
         if(self%juncs(j)%fid_f==self%bndcs(i)%id) then
           junc_f = .TRUE.
+          self%f_ids(j) = self%bndcs(i)%id
+          self%f_typ(j) = 'bndc'
+          self%f_idx(j) = i
         else if(self%juncs(j)%fid_t==self%bndcs(i)%id) then
           junc_t = .TRUE.
+          self%t_ids(j) = self%bndcs(i)%id
+          self%t_typ(j) = 'bndc'
+          self%t_idx(j) = i
         end if
       end do
       ! if connected with pvessel
@@ -117,8 +129,14 @@ contains
         do i = 1, self%npzrv
           if(self%juncs(j)%fid_f==self%pzrvs(i)%id_g) then
             junc_f = .TRUE.
+            self%f_ids(j) = self%pzrvs(i)%id_g
+            self%f_typ(j) = 'pzrv-g'
+            self%f_idx(j) = i
           else if(self%juncs(j)%fid_f==self%pzrvs(i)%id_l) then
             junc_f = .TRUE.
+            self%f_ids(j) = self%pzrvs(i)%id_l
+            self%f_typ(j) = 'pzrv-l'
+            self%f_idx(j) = i
           end if
         end do
       end if 
@@ -126,8 +144,14 @@ contains
         do i = 1, self%npzrv
           if(self%juncs(j)%fid_t==self%pzrvs(i)%id_g) then
             junc_t = .TRUE.
+            self%t_ids(j) = self%pzrvs(i)%id_g
+            self%t_typ(j) = 'pzrv-g'
+            self%t_idx(j) = i
           else if(self%juncs(j)%fid_t==self%pzrvs(i)%id_l) then
             junc_t = .TRUE.
+            self%t_ids(j) = self%pzrvs(i)%id_l
+            self%t_typ(j) = 'pzrv-l'
+            self%t_idx(j) = i
           end if
         end do
       end if 
@@ -221,8 +245,6 @@ contains
     ! residual array
     real(c_double), intent(out) :: res(:)
     !=== local variables ===
-    character(len=20) :: f_type, t_type
-    integer(c_int) :: f_idx , t_idx
     integer(c_int) :: i, j
     !======= Internals ============
     ! update fluid boundary cell properties
@@ -240,22 +262,8 @@ contains
       self%pzrvs(i)%wghg_ex= 0.d0
     end do
     do j = 1, self%njunc
-      f_type = 'none'
-      t_type = 'none'
-      ! looking for the 'from' fluid component of j-th junction
-      do i = 1, self%nbndc
-        if(self%juncs(j)%fid_f==self%bndcs(i)%id) then
-          f_type = 'bndc'
-          f_idx  = i
-          exit
-        end if
-      end do
-      if(f_type=='none') then
-        do i = 1, self%npzrv
+      print*, 'haha'
 
-
-        end do
-      end if
 
     end do
 
