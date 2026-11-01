@@ -110,6 +110,46 @@ contains
     integer(c_int) :: i, j, k
 
     !======= Internals ============
+    k = 1
+    ! fluid solver
+    if(solve_fluid) then
+      ! pvessel data----------------------------------------------------
+      do i = 1, self%fluid%npzrv
+        ! fluid masses to be solved by sundials
+        self%fluid%pzrvs(i)%m_l = yval(k)
+        k = k + 1
+        self%fluid%pzrvs(i)%m_g = yval(k)
+        k = k + 1
+        ! fluid total ENTHALPIES to be solved by sundials
+        self%fluid%pzrvs(i)%h_l = yval(k)
+        k = k + 1
+        self%fluid%pzrvs(i)%h_g = yval(k)
+        k = k + 1
+        ! fluid pressure to be solved by sundials
+        self%fluid%pzrvs(i)%p_g = yval(k)
+        k = k + 1
+        ! fluid  temperatures to be solved by sundials
+        self%fluid%pzrvs(i)%t_l = yval(k)
+        k = k + 1
+        self%fluid%pzrvs(i)%t_g = yval(k)
+        k = k + 1
+        ! fluid volumes to be solved by sundials
+        self%fluid%pzrvs(i)%v_l = yval(k)
+        k = k + 1
+        self%fluid%pzrvs(i)%v_g = yval(k)
+        k = k + 1
+      end do
+      ! external fluid junctions----------------------------------------
+      do i = 1, self%fluid%njunc
+        ! mdots to be solved by sundials
+        if(self%fluid%juncs(i)%typ=='junc_flow') then
+          continue
+        else
+          self%fluid%juncs(i)%mdot = yval(k)
+          k = k + 1
+        end if
+      end do
+    end if
 
   end subroutine read_from_y
 

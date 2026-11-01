@@ -1,0 +1,59 @@
+Date : 2026-11-01 17:58:40
+Directory : /home/chenyt/Desktop/acpr50s-n2pzr
+Total : 33 files,  2356 codes, 744 comments, 244 blanks, all 3344 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| Fortran  |         18 |      1,685 |        729 |        227 |      2,641 |
+| XML      |         14 |        639 |          0 |          3 |        642 |
+| Makefile |          1 |         32 |         15 |         14 |         61 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++--------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                   | files      | code       | comment    | blank      | total      |
++--------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                      |         33 |      2,356 |        744 |        244 |      3,344 |
++--------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++--------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                               | language | code       | comment    | blank      | total      |
++--------------------------------------------------------+----------+------------+------------+------------+------------+
+| /home/chenyt/Desktop/acpr50s-n2pzr/A0_acprpzr_fmod.f90 | Fortran  |        239 |         53 |         74 |        366 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/A1_rescomp_mod.f90  | Fortran  |         32 |         27 |         18 |         77 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/A2_control_mod.f90  | Fortran  |        523 |        149 |         18 |        690 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/A2_mfldcpl_mod.f90  | Fortran  |          0 |          0 |          1 |          1 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/B0_sysdomn_mod.f90  | Fortran  |         61 |         45 |         11 |        117 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/B1_fludomn_mod.f90  | Fortran  |        158 |         49 |         18 |        225 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/B1_slddomn_mod.f90  | Fortran  |          9 |          9 |          6 |         24 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/B2_flubndc_mod.f90  | Fortran  |         44 |         29 |         11 |         84 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/B2_flujunc_mod.f90  | Fortran  |         29 |         22 |          6 |         57 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/B2_heatstr_mod.f90  | Fortran  |          8 |          9 |          9 |         26 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/B2_pvessel_mod.f90  | Fortran  |         85 |         49 |          8 |        142 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/B2_sldbndc_mod.f90  | Fortran  |          4 |          9 |          2 |         15 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/B3_ctlsgnl_mod.f90  | Fortran  |         35 |         18 |          5 |         58 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/C0_corrsub_mod.f90  | Fortran  |        198 |        136 |         14 |        348 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/C1_interpo_mod.f90  | Fortran  |         70 |         33 |          4 |        107 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/C1_readdat_mod.f90  | Fortran  |         99 |         52 |          4 |        155 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/C2_globdat_mod.f90  | Fortran  |         61 |         26 |          3 |         90 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/Makefile            | Makefile |         32 |         15 |         14 |         61 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/ZZBL_fmod.f90       | Fortran  |         30 |         14 |         15 |         59 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/control_mod.mod     | XML      |         59 |          0 |          0 |         59 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/corrsub_mod.mod     | XML      |         34 |          0 |          0 |         34 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/ctlsgnl_mod.mod     | XML      |         32 |          0 |          1 |         33 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/flubndc_mod.mod     | XML      |         59 |          0 |          0 |         59 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/fludomn_mod.mod     | XML      |         55 |          0 |          0 |         55 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/flujunc_mod.mod     | XML      |         41 |          0 |          0 |         41 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/globdat_mod.mod     | XML      |         26 |          0 |          0 |         26 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/heatstr_mod.mod     | XML      |         47 |          0 |          0 |         47 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/interpo_mod.mod     | XML      |         21 |          0 |          0 |         21 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/pvessel_mod.mod     | XML      |         46 |          0 |          0 |         46 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/readdat_mod.mod     | XML      |         29 |          0 |          0 |         29 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/sldbndc_mod.mod     | XML      |         48 |          0 |          2 |         50 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/slddomn_mod.mod     | XML      |         51 |          0 |          0 |         51 |
+| /home/chenyt/Desktop/acpr50s-n2pzr/sysdomn_mod.mod     | XML      |         91 |          0 |          0 |         91 |
+| Total                                                  |          |      2,356 |        744 |        244 |      3,344 |
++--------------------------------------------------------+----------+------------+------------+------------+------------+
