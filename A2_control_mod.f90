@@ -360,7 +360,6 @@ module control_mod
     real(c_double), intent(in) :: time
     !== local variables ==
     real(c_double) :: value       ! signal value
-    real(c_double) :: pbnd, tbnd  ! boundary cell p, t
     integer(c_int) :: i, j
     logical :: pfound, tfound, jfound
 
@@ -390,18 +389,18 @@ module control_mod
         tfound = .FALSE. ! signal for t is found?
         do j = 1, system_glo%numsgnl
           if(system_glo%fluid%bndcs(i)%sig_p==system_glo%signals(j)%id) then
-            pbnd = system_glo%signals(j)%val
+            system_glo%fluid%bndcs(i)%pf = system_glo%signals(j)%val
             pfound = .TRUE.
           end if
           if(system_glo%fluid%bndcs(i)%sig_t==system_glo%signals(j)%id) then
-            tbnd = system_glo%signals(j)%val
+            system_glo%fluid%bndcs(i)%tf = system_glo%signals(j)%val
             tfound = .TRUE.
           end if
           if(pfound .and. tfound) exit
         end do
         !
         if(pfound .and. tfound) then
-          call system_glo%fluid%bndcs(i)%updt_flubndc(pbnd, tbnd)
+          call system_glo%fluid%bndcs(i)%updt_flubndc()
         else
           print*, 'lacking p/t signal for bnd cell ', system_glo%fluid%bndcs(i)%id
           stop 'program stopped at evaluate_signals'

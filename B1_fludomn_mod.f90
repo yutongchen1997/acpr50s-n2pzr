@@ -203,9 +203,8 @@ contains
         case default
           continue
       end select
-
     end do
-  !
+
   end subroutine init_fludomn
 
   subroutine calc_res_fludomn(self,res)
@@ -216,8 +215,50 @@ contains
     ! residual array
     real(c_double), intent(out) :: res(:)
     !=== local variables ===
-
+    character(len=20) :: f_type, t_type
+    integer(c_int) :: f_idx , t_idx
+    integer(c_int) :: i, j
     !======= Internals ============
+    ! update fluid boundary cell properties
+    do i = 1, self%nbndc
+      call self%bndcs(i)%updt_flubndc()
+    end do
+    ! calculate the mass and energy transport between fluid components
+    do i = 1, self%npzrv
+      ! initialization of pvessels
+      self%pzrvs(i)%wl_su  = 0.d0
+      self%pzrvs(i)%wg_in  = 0.d0
+      self%pzrvs(i)%wg_ex  = 0.d0
+      self%pzrvs(i)%wlhl_su= 0.d0
+      self%pzrvs(i)%wghg_in= 0.d0
+      self%pzrvs(i)%wghg_ex= 0.d0
+    end do
+    do j = 1, self%njunc
+      do i = 1, self%nbndc
+
+      end do
+
+    end do
+
+      ! the wl_su
+
+
+
+
+      ! the wlhl_su
+
+
+      ! the wg_in
+
+      ! the wg_ex
+
+
+      ! the wghg_in
+
+
+      ! the wghg_ex
+
+
 
   end subroutine calc_res_fludomn
 

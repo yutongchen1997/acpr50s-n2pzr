@@ -61,15 +61,12 @@ contains
     
   end subroutine init_flubndc
 
-  subroutine updt_flubndc(self, pf, tf)
+  subroutine updt_flubndc(self)
     !======= Declarations =========
     implicit none
     !=== I/0 variables ===
     class(flubndc), intent(inout) :: self
-    real(c_double), intent(in) :: pf, tf
-    ! update fluid enthalpy with updated pf and tf
-    self%pf = pf
-    self%tf = tf
+    ! update fluid enthalpy with updated self%pf and self%tf
     select case (self%mat)
       case('n2g')
         call hgeos_n2g(eosopt, self%pf, self%tf, self%s_hf)

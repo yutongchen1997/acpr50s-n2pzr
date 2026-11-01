@@ -25,9 +25,9 @@ module pvessel_mod
     real(c_double) :: csa_z, vol_t 
     ! boundary conditions ------------------------------------------
     ! mass flow rates: gas inlet, gas exit, surge line
-    real(c_double) :: wg_in, wg_ex, w_su
+    real(c_double) :: wg_in, wg_ex, wl_su
     ! enthalpy flow rates: gas inlet, gas exit, surge line
-    real(c_double) :: wghg_in, wghg_ex, wh_su
+    real(c_double) :: wghg_in, wghg_ex, wlhl_su
     ! wall heat transfer rates
     real(c_double) :: qw_g, qw_l
     ! dynamic variables --------------------------------------------
@@ -99,7 +99,7 @@ contains
     ! calculate initial liquid and gas enthalpy [J]
     self%h_l = self%m_l*s_hl0
     self%h_g = self%m_g*s_hg0
-    ! calculate initial liquid to gas heating rate [W]
+    ! calculate initial liquid to gas freelevel heating rate [W]
     self%qlg_i = self%htc_i*self%csa_z*(self%t_l-self%t_g)
   end subroutine init_pvessel
 
@@ -116,10 +116,11 @@ contains
     ! initialization
     res = 0.d0
     ! mass equations
-    res(1) = self%dmldt-self%w_su              ! liq mass
+    res(1) = self%dmldt-self%wl_su             ! liq mass
     res(2) = self%dmgdt-self%wg_in+self%wg_ex  ! gas mass
     ! energy equations
-    res(3) = self%dhldt-self%wh_su+self%qlg_i                 ! liq energy
+    self%qlg_i = self%htc_i*self%csa_z*(self%t_l-self%t_g)    ! liq-gas freelevel heating rate
+    res(3) = self%dhldt-self%wlhl_su+self%qlg_i               ! liq energy
     res(4) = self%dhgdt-self%wghg_in+self%wghg_ex-self%qlg_i  ! gas energy
     ! eos equations
     rg   = self%m_g/self%v_g
