@@ -24,6 +24,11 @@ module fludomn_mod
     type(flubndc), allocatable :: bndcs(:)
     ! array storing junction objects
     type(flujunc), allocatable :: juncs(:)
+    ! array storing junction connection information
+    character(len=20), allocatable:: f_ids(:), t_ids(:)
+    character(len=20), allocatable:: f_typ(:), t_typ(:)
+    integer(c_int), allocatable   :: f_idx(:), t_idx(:)
+
     
   contains
     !=== Member Procedures ===
@@ -94,6 +99,7 @@ contains
     integer(c_int) :: i, j
     logical :: junc_f, junc_t
     !======= Internals ============
+    allocate(self%bndcs(self%nbndc))
     ! check if there is a unconnected junction
     do j = 1, self%njunc
       junc_f = .FALSE.
@@ -225,7 +231,7 @@ contains
     end do
     ! calculate the mass and energy transport between fluid components
     do i = 1, self%npzrv
-      ! initialization of pvessels
+      ! initialization of pvessels inlets/outlets
       self%pzrvs(i)%wl_su  = 0.d0
       self%pzrvs(i)%wg_in  = 0.d0
       self%pzrvs(i)%wg_ex  = 0.d0
@@ -234,9 +240,22 @@ contains
       self%pzrvs(i)%wghg_ex= 0.d0
     end do
     do j = 1, self%njunc
+      f_type = 'none'
+      t_type = 'none'
+      ! looking for the 'from' fluid component of j-th junction
       do i = 1, self%nbndc
-
+        if(self%juncs(j)%fid_f==self%bndcs(i)%id) then
+          f_type = 'bndc'
+          f_idx  = i
+          exit
+        end if
       end do
+      if(f_type=='none') then
+        do i = 1, self%npzrv
+
+
+        end do
+      end if
 
     end do
 
