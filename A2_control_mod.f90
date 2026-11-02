@@ -381,7 +381,7 @@ module control_mod
           stop 'program stopped at evaluate_signals'
       end select
     end do
-    ! patch the signal values relative to fluid domain
+    ! patch the signal values related to fluid domain
     if(solve_fluid) then
       ! update the fluid boundary cells
       do i = 1, system_glo%fluid%nbndc
@@ -434,7 +434,7 @@ module control_mod
         end do
       end do
     end if
-    ! patch the signal values relative to solid domain
+    ! patch the signal values related to solid domain
     ! now under development...
   end subroutine evaluate_signals
 
@@ -490,7 +490,7 @@ module control_mod
       else
         print*, 'Output directory created successfully for fluid.'
       end if
-      ! open output .dat files relative to fluid boundary cells
+      ! open output .dat files related to fluid boundary cells
       do i = 1, system_glo%fluid%nbndc
         ! fluid temperature
         write(fileid,110) 'bndc-temperature-',ADJUSTL(TRIM(system_glo%fluid%bndcs(i)%id)),'.dat'
@@ -513,7 +513,7 @@ module control_mod
         write(otpfu+k,*)''
         k = k + 1
       end do
-      ! open output .dat files relative to pressure vessel fluid
+      ! open output .dat files related to pressure vessel fluid
       do i = 1, system_glo%fluid%npzrv
         ! fluid temperature
         write(fileid,110) 'pzrv-fluidtemperature-',ADJUSTL(TRIM(system_glo%fluid%pzrvs(i)%id)),'.dat'

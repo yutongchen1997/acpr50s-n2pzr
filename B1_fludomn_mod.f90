@@ -306,9 +306,13 @@ contains
         case default
           stop 'under development - 2026/11/01-0125'
       end select
-
     end do
-
+    ! calculate residuals of equations related to pvessels
+    do i = 1, self%npzrv
+      call self%pzrvs(i)%calc_res_pvessel(res(9*i-8:9*i))
+    end do
+    ! calculate residuals of equations related to junctions
+    ! now under active development...
   end subroutine calc_res_fludomn
 
 

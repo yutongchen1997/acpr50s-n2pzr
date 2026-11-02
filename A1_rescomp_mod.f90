@@ -10,7 +10,8 @@
 module rescomp_mod
 
   !======= Inclusions ===========
-  use, intrinsic :: iso_c_binding
+  use control_mod
+  use mfldcpl_mod
   use fsundials_core_mod
 
   !======= Declarations =========
@@ -31,7 +32,7 @@ contains
   !    1 = recoverable error,
   !   -1 = non-recoverable error
   ! ----------------------------------------------------------------
-  integer(c_int) function resrob(tres, sunvec_y, sunvec_yp, sunvec_r, user_data) &
+  integer(c_int) function resrob(time, sunvec_y, sunvec_yp, sunvec_r, user_data) &
     result(ierr) bind(C, name='resrob')
 
     !======= Inclusions ===========
@@ -43,7 +44,7 @@ contains
     implicit none
 
     ! calling variables
-    real(c_double), value :: tres      ! current time
+    real(c_double), value :: time      ! current time
     type(N_Vector)        :: sunvec_y  ! solution N_Vector
     type(N_Vector)        :: sunvec_yp ! derivative N_Vector
     type(N_Vector)        :: sunvec_r  ! residual N_Vector
@@ -54,19 +55,30 @@ contains
     real(c_double), pointer :: ypval(:)
     real(c_double), pointer :: rval(:)
 
-    !======= Internals ============
+    ! locally defined arrays/variables
+    real(c_double), allocatable :: res(:)
+    real(c_double), allocatable :: res_fluid(:)
+    real(c_double), allocatable :: res_solid(:)
+    real(c_double) :: t1, t2  ! CPU time
 
+    !======= Internals ============
+    call CPU_TIME(t1)
     ! get data arrays from SUNDIALS vectors
-    yval => FN_VGetArrayPointer(sunvec_y)
+    yval  => FN_VGetArrayPointer(sunvec_y)
     ypval => FN_VGetArrayPointer(sunvec_yp)
-    rval => FN_VGetArrayPointer(sunvec_r)
+    rval  => FN_VGetArrayPointer(sunvec_r)
+    
+    ! read the system_glo data from SUNDIALS vectors
+    call system_glo%read_from_y_and_yp(yval, ypval)
+
 
     ! fill residual vector
     rval(1) = -0.04d0*yval(1) + 1.0d4*yval(2)*yval(3)
     rval(2) = -rval(1) - 3.0d7*yval(2)**2 - ypval(2)
     rval(1) = rval(1) - ypval(1)
     rval(3) = yval(1) + yval(2) + yval(3) - 1.d0
-
+    !
+    call CPU_TIME(t2)
     ! return success
     ierr = 0
     return

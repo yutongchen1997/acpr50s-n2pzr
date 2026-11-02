@@ -24,8 +24,10 @@ module flujunc_mod
     character(len=20) :: sig
     ! junction values: pump head [Pa], local loss coefficient [-]
     real(c_double) :: phed, kfac
-    ! junction variable: mass flow rate [kg/s]
+    ! junction variable: mass flow rate [kg/s] 
     real(c_double) :: mdot 
+    ! junction variable: time derivative of mass flow rate [kg/s^2]
+    real(c_double) :: dmdotdt
 
   contains
     !=== Member Procedures ===

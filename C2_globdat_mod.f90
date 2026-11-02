@@ -30,7 +30,7 @@ module globdat_mod
   integer(c_int), parameter :: nnmlst = 13     ! total number of input file namelists
   integer(c_int), parameter :: nsolvr = 4      ! total number of available solvers
   integer(c_int), parameter :: nfluids= 2      ! total number of available fluids
-  ! integers relative to file units
+  ! integers related to file units
   integer(c_int), parameter :: inpfu  = 5      ! input file unit
   integer(c_int), parameter :: otpfu  = 10     ! output file unit baseline
   integer(c_int), parameter :: n2gfu  = 10001  ! N2 gas property data file unit
