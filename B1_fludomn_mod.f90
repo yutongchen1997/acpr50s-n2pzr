@@ -245,7 +245,9 @@ contains
     ! residual array
     real(c_double), intent(out) :: res(:)
     !=== local variables ===
-    integer(c_int) :: i, j
+    real(c_double) :: mdot
+    real(c_double) :: hg, hl, mg, ml
+    integer(c_int) :: i, j, k
     !======= Internals ============
     ! update fluid boundary cell properties
     do i = 1, self%nbndc
@@ -262,30 +264,50 @@ contains
       self%pzrvs(i)%wghg_ex= 0.d0
     end do
     do j = 1, self%njunc
-      print*, 'haha'
-
+      ! effects on the 'from' component
+      select case(self%f_typ(j))
+        case('bndc')    ! from 'bndc'
+          continue
+        case('pzrv-g')  ! from 'pzrv-g'
+          i = self%f_idx(j)
+          mdot = self%juncs(j)%mdot
+          self%pzrvs(i)%wg_ex = self%pzrvs(i)%wg_ex + mdot
+          hg = self%pzrvs(i)%h_g  ! [J]
+          mg = self%pzrvs(i)%m_g  ! [kg]
+          self%pzrvs(i)%wghg_ex=self%pzrvs(i)%wghg_ex + mdot*hg/mg
+        case('pzrv-l')  ! from 'pzrv-l'
+          i = self%f_idx(j)
+          mdot = self%juncs(j)%mdot
+          self%pzrvs(i)%wl_su = self%pzrvs(i)%wl_su - mdot
+          hl = self%pzrvs(i)%h_l  ! [J]
+          ml = self%pzrvs(i)%m_l  ! [kg]
+          self%pzrvs(i)%wlhl_su=self%pzrvs(i)%wlhl_su - mdot*hl/ml
+        case default
+          stop 'under development - 2026/11/01-0010'
+      end select
+      ! effects on the 'to' component
+      select case(self%t_typ(j))
+        case('bndc')    ! to 'bndc'
+          continue
+        case('pzrv-g')  ! to 'pzrv-g'
+          i = self%t_idx(j)
+          k = self%f_idx(j)
+          mdot = self%juncs(j)%mdot
+          self%pzrvs(i)%wg_in = self%pzrvs(i)%wg_in + mdot
+          hg = self%bndcs(k)%s_hf  ! bndc enthalpy [J/kg]
+          self%pzrvs(i)%wghg_in=self%pzrvs(i)%wghg_in + mdot*hg
+        case('pzrv-l')  ! to 'pzrv-l'
+          i = self%t_idx(j)
+          k = self%f_idx(j)
+          mdot = self%juncs(j)%mdot
+          self%pzrvs(i)%wl_su = self%pzrvs(i)%wl_su + mdot
+          hl = self%bndcs(k)%s_hf  ! bndc enthalpy [J/kg]
+          self%pzrvs(i)%wlhl_su=self%pzrvs(i)%wlhl_su + mdot*hl
+        case default
+          stop 'under development - 2026/11/01-0125'
+      end select
 
     end do
-
-      ! the wl_su
-
-
-
-
-      ! the wlhl_su
-
-
-      ! the wg_in
-
-      ! the wg_ex
-
-
-      ! the wghg_in
-
-
-      ! the wghg_ex
-
-
 
   end subroutine calc_res_fludomn
 
