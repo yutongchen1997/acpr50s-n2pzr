@@ -20,7 +20,7 @@ module rescomp_mod
   integer, parameter :: myindextype = selected_int_kind(16)
 
   integer(kind=myindextype), parameter :: neq = 3
-  integer(kind=myindextype), parameter :: nout = 12
+  integer(kind=myindextype), parameter :: nout = 1000
 
 contains
 
