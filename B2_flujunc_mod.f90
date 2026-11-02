@@ -36,14 +36,15 @@ module flujunc_mod
 
 contains
 
-  subroutine init_flujunc(self, juntp, fid_f, fid_t, sig)
+  subroutine init_flujunc(self, id, juntp, fid_f, fid_t, sig)
     !======= Declarations =========
     implicit none
     !=== I/0 variables ===
     class(flujunc), intent(inout) :: self
-    character(len=20), intent(in) :: juntp, fid_f, fid_t
+    character(len=20), intent(in) :: id, juntp, fid_f, fid_t
     character(len=20), optional, intent(in) :: sig
     !======= Internals ============
+    self%id    = id
     self%typ   = juntp  ! junction type: 'junc_flow', 'junc_valv', 'junc_pump', 'junc_norm'
     self%fid_f = fid_f
     self%fid_t = fid_t

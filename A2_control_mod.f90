@@ -24,11 +24,11 @@ module control_mod
   real(c_double) :: rt    = 1.0d-4
   real(c_double) :: at(5) = 1.0d-6
   integer(c_long):: mxstps= 1000000
-  integer(c_int) :: solopt= 1
   integer(c_int) :: maxnef= 7, maxcor = 3
+  integer(c_int) :: solopt= 1
   ! XPZRV variables-------------------------------------------------03
   character(len=20) :: id_l, id_g, mat_l, mat_g
-  real(c_double) :: dia_i, len_t, level0, htc_i0
+  real(c_double) :: dia_i, len_t, lvl0, htc_i0
   real(c_double) ::tgas0, tliq0, pgas0
   ! XPIPE variables-------------------------------------------------04
   ! temporarily left blank
@@ -56,13 +56,13 @@ module control_mod
                    solopt, eosopt
   ! XPZRV namelist 03.----------------------------------------------
   NAMELIST /XPZRV/ id    , id_l  , id_g  , mat_l , mat_g , dia_i , &
-                   len_t , level0, htc_i0, tgas0 , tliq0 , pgas0
+                   len_t , lvl0  , htc_i0, tgas0 , tliq0 , pgas0
   ! XPIPE namelist 04.----------------------------------------------
   ! XBNDC namelist 05.----------------------------------------------
   NAMELIST /XBNDC/ id    , mat   , typ   , pf0   , tf0   , sig_p , &
                    sig_t
   ! XJUNC namelist 06.----------------------------------------------
-  NAMELIST /XJUNC/ typ   , fid_f , fid_t , sigid
+  NAMELIST /XJUNC/ id    , typ   , fid_f , fid_t , sigid
   ! XCORE namelist 07.----------------------------------------------
   ! XFUEL namelist 08.----------------------------------------------
   ! XCLAD namelist 09.----------------------------------------------
@@ -180,6 +180,9 @@ module control_mod
     end if
     ! start of solve_fluid section =====================================
     if(solve_fluid) then
+      ! firstly get the fluid thermophysical data
+      call read_h2o_dat()
+      call read_n2g_dat()
     ! /XPZRV/-----------------------------------------------------------
       if(numnml(idxpzrv)>=1) then
         allocate(pvessel_arr(numnml(idxpzrv)))
@@ -190,7 +193,7 @@ module control_mod
           allocate(inp_pzrv(7))
           inp_pzrv(1) = dia_i
           inp_pzrv(2) = len_t
-          inp_pzrv(3) = level0
+          inp_pzrv(3) = lvl0
           inp_pzrv(4) = tgas0
           inp_pzrv(5) = tliq0
           inp_pzrv(6) = pgas0
@@ -263,9 +266,9 @@ module control_mod
           ! read different types of junctions seperately
           select case (typ)
             case('junc_flow', 'junc_valv', 'junc_pump')
-              call flujunc_arr(i)%init_flujunc(typ, fid_f, fid_t, sigid)
+              call flujunc_arr(i)%init_flujunc(id, typ, fid_f, fid_t, sigid)
             case('junc_norm')
-              call flujunc_arr(i)%init_flujunc(typ, fid_f, fid_t)
+              call flujunc_arr(i)%init_flujunc(id, typ, fid_f, fid_t)
             case default
               print*, 'no match for junction type = ', typ
               stop 'program stopped at construct_input'
@@ -273,14 +276,14 @@ module control_mod
         end do
         ! assign the flujunc_arr(:) to system_glo
         call system_glo%fluid%init_juncs(flujunc_arr)
+        deallocate(flujunc_arr)
       else
         print*, 'no namelist /XJUNC/ detected for fluid solver'
         stop 'program stopped at construct_input'
       end if 
-      deallocate(flujunc_arr)
-      ! then get the fluid thermophysical data
-      if(numfld(idxh2o)>0) call read_h2o_dat()
-      if(numfld(idxn2g)>0) call read_n2g_dat()
+      neq_tot = neq_tot + neq_mdot
+      neq_tot = neq_tot + neq_pzrv
+      call system_glo%fluid%init_fludomn()
     end if
     ! end of solve_fluid section =========================================
     ! /XSGNL/-------------------------------------------------------------
@@ -411,11 +414,11 @@ module control_mod
         do j = 1, system_glo%numsgnl
           if(system_glo%fluid%juncs(i)%sig==system_glo%signals(j)%id) then
             select case (system_glo%fluid%juncs(i)%typ)
-              case ('jun-flow')  ! mass-flow-rate specified
+              case ('junc_flow')  ! mass-flow-rate specified
                 system_glo%fluid%juncs(i)%mdot = system_glo%signals(j)%val
-              case ('jun-valv')  ! k-factor specified 
+              case ('junc_valv')  ! k-factor specified 
                 system_glo%fluid%juncs(i)%kfac = system_glo%signals(j)%val
-              case ('jun-pump')  ! pump-head specified
+              case ('junc_pump')  ! pump-head specified
                 system_glo%fluid%juncs(i)%phed = system_glo%signals(j)%val
               case default
                 if(system_glo%fluid%juncs(i)%typ=='jun-norm') then

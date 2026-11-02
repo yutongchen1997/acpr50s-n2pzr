@@ -86,6 +86,7 @@ contains
     ! return success
     ierr = 0
     !
+    
     call CPU_TIME(t2)
     !
     return

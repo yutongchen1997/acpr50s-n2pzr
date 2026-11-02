@@ -37,7 +37,7 @@ program acprpzr
   integer(c_int) :: iout, retval
   ! integers
   integer, parameter :: myindextype = selected_int_kind(16)
-  integer(kind=myindextype), parameter :: NOUT = 100
+  integer(kind=myindextype), parameter :: NOUT = 720
   integer(kind=myindextype) :: neq = 0
   ! SUNDIALS types
   type(N_Vector), pointer :: sunvec_y      ! sundials solution vector
@@ -65,9 +65,12 @@ program acprpzr
   call open_output_files()
   ! convert neq type
   neq = int(neq_tot, kind = myindextype)
+
   ! set tolerance vectors
   rtol = rt
-  ! 
+  !
+  allocate(yval(neq))
+  allocate(ypval(neq))
   allocate(avtol(neq))
   if(neq_mdot>0) then
     ! under active development ... 2026/11/02-1453
@@ -86,7 +89,7 @@ program acprpzr
   end if
   ! ---
   call system_glo%write_to_y_and_yp(yval, ypval)
-
+  !
   ! create serial vectors
   sunvec_y => FN_VMake_Serial(neq, yval, sunctx)
   if (.not. associated(sunvec_y)) then
@@ -127,7 +130,6 @@ program acprpzr
     print *, 'Error in FIDASVtolerances, retval = ', retval, '; halting'
     stop 1
   end if
-
   !
   select case (solopt)
     case(1) ! Dense direct linear solver (internal) (Dense)
@@ -231,16 +233,28 @@ program acprpzr
     print *, 'Error in FIDASetNonlinearSolver, retval = ', retval, '; halting'
     stop 1
   end if
+  !
+  mxstps = mxstps   ! User-configurable, default (500)
+  retval = FIDASetMaxNumSteps(ida_mem, mxstps)
+  maxnef = maxnef     ! User-configurable, default (10)
+  retval = FIDASetMaxErrTestFails(ida_mem, maxnef)
+  maxcor = maxcor     ! User-configurable, default (4)
+  retval = FIDASetMaxNonlinIters(ida_mem, maxcor)
+  !
+  !  set initial, minimum, maximum timestep
+  retval = FIDASetInitStep(ida_mem, dtini)
+  retval = FIDASetMinStep(ida_mem, dtmin)
+  retval = FIDASetMaxStep(ida_mem, dtmax)
 
   ! In loop, call IDASolve, print results, and test for error.
   ! Break out of loop when NOUT preset output times have been reached.
-
+  
   iout = 0
   tout = tstart
   call print_output_files(tout)
   ! push on to the next step
   tout = tout + dtotp
-
+  
   do while(tout<=tend)
     retval = FIDASolve(ida_mem, tout, tret, sunvec_y, sunvec_yp, IDA_NORMAL)
     if (retval < 0) then
@@ -256,7 +270,7 @@ program acprpzr
     end if
 
     if (iout == NOUT) exit
-
+    
   end do
 
   ! free memory
