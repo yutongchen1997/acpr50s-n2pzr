@@ -18,8 +18,6 @@ module sysdomn_mod
     !=== Member Variables === 
     ! time variables
     real(c_double) :: tstart, tend, dtout
-    ! total number of daes
-    integer(c_int) :: neq_tot = 0
     ! total number of signals
     integer(c_int) :: numsgnl = 0
     ! fluid domain object

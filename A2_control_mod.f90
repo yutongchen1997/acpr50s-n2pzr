@@ -23,7 +23,7 @@ module control_mod
   ! XSOLV variables-------------------------------------------------02
   character(len=20) :: solver(nsolvr) = 'end'
   real(c_double) :: rt    = 1.0d-4
-  real(c_double) :: at(4) = 1.0d-6
+  real(c_double) :: at(5) = 1.0d-6
   integer(c_long):: mxstps= 1000000
   integer(c_int) :: solopt= 1
   integer(c_int) :: maxnef= 7, maxcor = 3

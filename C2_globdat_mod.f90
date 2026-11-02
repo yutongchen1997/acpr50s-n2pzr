@@ -82,8 +82,5 @@ module globdat_mod
   character(len=20) :: eosopt = 'igas'
   ! parallel calculation data
   integer(c_int) :: num_of_threads = 1 ! number of omp threads
-  ! tolerances
-  real(c_double) :: rtol
-  real(c_double), allocatable :: avtol(:)
   
 end module globdat_mod

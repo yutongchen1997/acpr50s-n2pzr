@@ -16,11 +16,7 @@ module rescomp_mod
 
   !======= Declarations =========
   implicit none
-
-  integer, parameter :: myindextype = selected_int_kind(16)
-
-  integer(kind=myindextype), parameter :: neq = 3
-  integer(kind=myindextype), parameter :: nout = 1000
+  ! integers
 
 contains
 
@@ -72,19 +68,22 @@ contains
     call system_glo%read_from_y_and_yp(yval, ypval)
     
     ! allocate residual array
-
-    allocate()
-
-
+    allocate(res(neq_tot))
+    res = 0.d0
     ! fill residual vector
-    rval(1) = -0.04d0*yval(1) + 1.0d4*yval(2)*yval(3)
-    rval(2) = -rval(1) - 3.0d7*yval(2)**2 - ypval(2)
-    rval(1) = rval(1) - ypval(1)
-    rval(3) = yval(1) + yval(2) + yval(3) - 1.d0
-    !
-    call CPU_TIME(t2)
+    if(solve_fluid) then
+      allocate(res_fluid(neq_mdot+neq_pzrv))
+      call system_glo%fluid%calc_res_fludomn(res_fluid)
+    end if
+    res = (/res_fluid/)
+    rval= res
+    deallocate(res)
+    deallocate(res_fluid)
     ! return success
     ierr = 0
+    !
+    call CPU_TIME(t2)
+    !
     return
 
   end function resrob

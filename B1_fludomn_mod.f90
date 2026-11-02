@@ -65,12 +65,19 @@ contains
     class(fludomn), intent(inout) :: self
     class(flujunc), intent(in)    :: junc_arr(:)
     !=== local variables ===
-
+    integer(c_int) :: i
     !======= Internals ============
     ! allocate and assign mdot and junction array
     self%njunc = size(junc_arr)
     allocate(self%juncs(self%njunc))
     self%juncs = junc_arr
+    do i = 1, self%njunc
+      if(self%juncs(i)%typ=='junc_flow') then
+        continue
+      else
+        neq_mdot = neq_mdot + 1
+      end if
+    end do
   end subroutine init_juncs
 
   ! initialize pressurizer vessel
@@ -87,6 +94,8 @@ contains
     self%npzrv = size(pzrv_arr)
     allocate(self%pzrvs(self%npzrv))
     self%pzrvs = pzrv_arr
+    ! number of pzrv equations
+    neq_pzrv = 9*self%npzrv ! 9 equations for each pvessel
   end subroutine init_pzrv
 
   ! initialize fluid domain

@@ -30,12 +30,16 @@ program acprpzr
   !======= Declarations =========
   implicit none
 
-  ! local variables
-  real(c_double) :: rtol, t0, tout1, tout, tret(1)
+  ! time variables
+  real(c_double) :: tout, tret(1)
   ! CPU time variables
   real(c_double) :: tic, tac
-  integer(c_int) :: iout, retval, retvalr, nrtfn, rootsfound(2)
-
+  integer(c_int) :: iout, retval
+  ! integers
+  integer, parameter :: myindextype = selected_int_kind(16)
+  integer(kind=myindextype), parameter :: nout = 100
+  integer(kind=myindextype) :: neq = 0
+  ! SUNDIALS types
   type(N_Vector), pointer :: sunvec_y      ! sundials solution vector
   type(N_Vector), pointer :: sunvec_yp     ! sundials derivative vector
   type(N_Vector), pointer :: sunvec_av     ! sundials tolerance vector
@@ -46,27 +50,42 @@ program acprpzr
   type(c_ptr)                       :: sunctx        ! SUNDIALS simulation context
 
   ! solution and tolerance vectors, neq is set in the dae_mod module
-  real(c_double) :: yval(neq), ypval(neq), avtol(neq)
+  real(c_double) :: rtol
+  real(c_double), allocatable :: avtol(:)
+  real(c_double), allocatable :: yval(:), ypval(:)
 
   !======= Internals ============
-  call cpu_time(tic)
+  call CPU_TIME(tic)
 
   retval = FSUNContext_Create(SUN_COMM_NULL, sunctx)
 
-  ! initialize solution vectors and tolerances
-  yval(1) = 1.d0
-  yval(2) = 0.d0
-  yval(3) = 0.d0
-
-  ypval(1) = -0.040
-  ypval(2) = 0.04d0
-  ypval(3) = 0.d0
-
-  rtol = 1.d-4
-
-  avtol(1) = 1.d-8
-  avtol(2) = 1.d-6
-  avtol(3) = 1.d-6
+  ! open the input file and read input data
+  call construct_input()
+  ! open output files
+  call open_output_files()
+  ! convert neq type
+  neq = int(neq_tot, kind = myindextype)
+  ! set tolerance vectors
+  rtol = rt
+  ! 
+  allocate(avtol(neq))
+  if(neq_mdot>0) then
+    ! under active development ... 2026/11/02-1453
+  end if
+  if(neq_pzrv>0) then
+  ! fluid mass
+    avtol(1:2) = at(1)
+  ! fluid energy
+    avtol(3:4) = at(2)
+  ! fluid pressure
+    avtol(5)   = at(3)
+  ! fluid temperature
+    avtol(6:7) = at(4)
+  ! fluid volume
+    avtol(8:9) = at(5)
+  end if
+  ! ---
+  call system_glo%write_to_y_and_yp(yval, ypval)
 
   ! create serial vectors
   sunvec_y => FN_VMake_Serial(neq, yval, sunctx)
@@ -87,11 +106,7 @@ program acprpzr
     stop 1
   end if
 
-  ! set integration limits
-  t0 = 0.d0
-  tout1 = 0.4d0
 
-  call PrintHeader(rtol, avtol, yval)
 
   ! Call FIDACreate and FIDAInit to initialize IDA memory
   ida_mem = FIDACreate(sunctx)
@@ -100,7 +115,7 @@ program acprpzr
     stop 1
   end if
 
-  retval = FIDAInit(ida_mem, c_funloc(resrob), t0, sunvec_y, sunvec_yp)
+  retval = FIDAInit(ida_mem, c_funloc(resrob), tstart, sunvec_y, sunvec_yp)
   if (retval /= 0) then
     print *, 'Error in FIDAInit, retval = ', retval, '; halting'
     stop 1
@@ -113,19 +128,85 @@ program acprpzr
     stop 1
   end if
 
-  ! Create dense SUNMatrix for use in linear solves
-  sunmat_A => FSUNDenseMatrix(neq, neq, sunctx)
-  if (.not. associated(sunmat_A)) then
-    print *, 'ERROR: sunmat = NULL'
-    stop 1
-  end if
+  !
+  select case (solopt)
+    case(1) ! Dense direct linear solver (internal) (Dense)
+      ! Create dense SUNMatrix for use in linear solves
+      sunmat_A => FSUNDenseMatrix(neq, neq, sunctx)
+      if (.not. associated(sunmat_A)) then
+         print *, 'ERROR: sunmat = NULL'
+         stop 1
+      end if
+      ! Create dense SUNLinearSolver object
+      sunlinsol_LS => FSUNLinSol_Dense(sunvec_y, sunmat_A, sunctx)
+      if (.not. associated(sunlinsol_LS)) then
+         print *, 'ERROR: sunlinsol = NULL, Dense'
+         stop 1
+      end if
+    case(2) ! Preconditioned Conjugate Gradient iterative solver (PCG)
+      ! SUNMatrix
+      sunmat_A => null()
+      ! Tell SUNDIALS to use a PCG linear solver.
+      sunlinsol_LS => FSUNLinSol_PCG(sunvec_y,SUN_PREC_NONE, 5, sunctx)
+      if (.not. associated(sunlinsol_LS)) then
+         print *, 'ERROR: sunls = NULL, PCG'
+         stop 1
+      end if
+      !
+    case(3) ! Scaled-Preconditioned BiCGtab iterative Solver (SPBCGS)
+      ! SUNMatrix
+      sunmat_A => null()
+      ! Tell SUNDIALS to use a SPBCGS linear solver
+      sunlinsol_LS => FSUNLinSol_SPBCGS(sunvec_y,SUN_PREC_NONE, 5, sunctx)
+      if (.not. associated(sunlinsol_LS)) then
+         print *, 'ERROR: sunls = NULL, SPBCGS'
+         stop 1
+      end if
+      !
+    case(4) ! Scaled-Preconditioned FGMRES iterative solver (SPFGMR)
+      ! SUNMatrix
+      sunmat_A => null()
+      ! Tell SUNDIALS to use a SPFGMR linear solver.
+      sunlinsol_LS => FSUNLinSol_SPFGMR(sunvec_y,SUN_PREC_NONE, 5, sunctx)
+      if (.not. associated(sunlinsol_LS)) then
+         print *, 'ERROR: sunls = NULL, SPFGMR'
+         stop 1
+      end if
+      ! Set the type of Gram-Schmidt orthogonalization to use
+      retval = FSUNLinSol_SPFGMRSetGSType(sunlinsol_LS,SUN_MODIFIED_GS)
+      if (retval /= 0) then
+         print *, 'Error in FSUNLinSol_SPGMRSetGSType'
+         stop 1
+      end if
+    case(5) ! Scaled-Preconditioned GMRES iterative solver
+      ! SUNMatrix
+      sunmat_A => null()
+      ! Tell SUNDIALS to use a SPGMR linear solver.
+      sunlinsol_LS => FSUNLinSol_SPGMR(sunvec_y,SUN_PREC_NONE, 5, sunctx)
+      if (.not. associated(sunlinsol_LS)) then
+         print *, 'ERROR: sunls = NULL, SPGMR'
+         stop 1
+      end if
+      ! Set the type of Gram-Schmidt orthogonalization to use
+      retval = FSUNLinSol_SPGMRSetGSType(sunlinsol_LS,SUN_MODIFIED_GS)
+      if (retval /= 0) then
+         print *, 'Error in FSUNLinSol_SPGMRSetGSType'
+         stop 1
+      end if
+    case(6) ! Scaled-Preconditioned TFQMR iterative solver
+      ! SUNMatrix
+      sunmat_A => null()
+      ! Tell CVODE to use a SPTFQMR linear solver.
+      sunlinsol_LS => FSUNLinSol_SPTFQMR(sunvec_y,SUN_PREC_NONE, 5, sunctx)
+      if (.not. associated(sunlinsol_LS)) then
+         print *, 'ERROR: sunls = NULL, SPGMR'
+         stop 1
+      end if
+    case default
+      print*, 'no match for solopt = ', solopt
+      stop 'program stopped at program acprpzr'
+  end select
 
-  ! Create dense SUNLinearSolver object
-  sunlinsol_LS => FSUNLinSol_Dense(sunvec_y, sunmat_A, sunctx)
-  if (.not. associated(sunlinsol_LS)) then
-    print *, 'ERROR: sunlinsol = NULL'
-    stop 1
-  end if
 
   ! Attach the matrix and linear solver
   retval = FIDASetLinearSolver(ida_mem, sunlinsol_LS, sunmat_A); 
@@ -155,36 +236,28 @@ program acprpzr
   ! Break out of loop when NOUT preset output times have been reached.
 
   iout = 0
-  tout = tout1
-  do
+  tout = tstart
+  call print_output_files(tout)
+  ! push on to the next step
+  tout = tout + dtotp
 
+  do while(tout<=tend)
     retval = FIDASolve(ida_mem, tout, tret, sunvec_y, sunvec_yp, IDA_NORMAL)
     if (retval < 0) then
       print *, 'Error in FIDASolve, retval = ', retval, '; halting'
       stop 1
     end if
-
-    call PrintOutput(ida_mem, tret(1), yval)
-
-    if (retval == IDA_ROOT_RETURN) then
-      retvalr = FIDAGetRootInfo(ida_mem, rootsfound)
-      if (retvalr < 0) then
-        print *, 'Error in FIDAGetRootInfo, retval = ', retval, '; halting'
-        stop 1
-      end if
-      print '(a,2(i2,2x))', "    rootsfound[] = ", rootsfound(1), rootsfound(2)
-    end if
-
+    ! output current data
+    call print_output_files(tout)
+    print*, iout, tout
     if (retval == IDA_SUCCESS) then
       iout = iout + 1
-      tout = tout*10.d0
+      tout = tout + dtotp
     end if
 
     if (iout == NOUT) exit
 
   end do
-
-  call PrintFinalStats(ida_mem)
 
   ! free memory
   call FIDAFree(ida_mem)
@@ -196,170 +269,7 @@ program acprpzr
   call FN_VDestroy(sunvec_yp)
   retval = FSUNContext_Free(sunctx)
 
-  call cpu_time(tac)
+  call CPU_TIME(tac)
   print*, 'total CPU time = ', tac - tic
 end program acprpzr
 
-! ----------------------------------------------------------------
-! PrintHeader: prints first lines of output (problem description)
-! ----------------------------------------------------------------
-subroutine PrintHeader(rtol, avtol, y)
-
-  !======= Inclusions ===========
-  use, intrinsic :: iso_c_binding
-  use rescomp_mod
-
-  !======= Declarations =========
-  implicit none
-
-  ! calling variable
-  real(c_double) :: rtol
-  real(c_double) :: avtol(neq)
-  real(c_double) :: y(neq)
-
-  !======= Internals ============
-
-  print *, " "
-  print *, "idaRoberts_dns_f2003: Robertson kinetics DAE serial example problem for IDA"
-  print *, "         Three equation chemical kinetics problem."
-  print *, " "
-  print *, "Linear solver: DENSE, with user-supplied Jacobian."
-  print '(a,f6.4,a,3(es7.0,1x))', "Tolerance parameters:  rtol = ", rtol, "   atol = ", avtol
-  print '(a,3(f5.2,1x),a)', "Initial conditions y0 = (", y, ")"
-  print *, "Constraints and id not used."
-  print *, " "
-  print *, "-----------------------------------------------------------------------"
-  print *, "  t             y1           y2           y3     | nst  k      h"
-  print *, "-----------------------------------------------------------------------"
-
-  return
-end subroutine PrintHeader
-
-! ----------------------------------------------------------------
-! PrintOutput
-! ----------------------------------------------------------------
-subroutine PrintOutput(ida_mem, t, y)
-
-  !======= Inclusions ===========
-  use, intrinsic :: iso_c_binding
-  use fida_mod
-  use rescomp_mod
-
-  !======= Declarations =========
-  implicit none
-
-  ! calling variable
-  type(c_ptr)    :: ida_mem
-  real(c_double) :: t, y(neq)
-
-  ! internal variables
-  integer(c_int)  :: retval, kused(1)
-  integer(c_long) :: nst(1)
-  real(c_double)  :: hused(1)
-
-  !======= Internals ============
-
-  retval = FIDAGetLastOrder(ida_mem, kused)
-  if (retval /= 0) then
-    print *, 'Error in FIDAGetLastOrder, retval = ', retval, '; halting'
-    stop 1
-  end if
-
-  retval = FIDAGetNumSteps(ida_mem, nst)
-  if (retval /= 0) then
-    print *, 'Error in FIDAGetNumSteps, retval = ', retval, '; halting'
-    stop 1
-  end if
-
-  retval = FIDAGetLastStep(ida_mem, hused)
-  if (retval /= 0) then
-    print *, 'Error in FIDAGetLastStep, retval = ', retval, '; halting'
-    stop 1
-  end if
-
-  print '(es12.4,1x,3(es12.4,1x),a,i3,2x,i1,1x,es12.4)', &
-    t, y(1), y(2), y(3), "| ", nst, kused(1), hused(1)
-
-end subroutine PrintOutput
-
-! ----------------------------------------------------------------
-! PrintFinalStats
-!
-! Print KINSOL statstics to standard out
-! ----------------------------------------------------------------
-subroutine PrintFinalStats(ida_mem)
-
-  !======= Inclusions ===========
-  use iso_c_binding
-  use fida_mod
-
-  !======= Declarations =========
-  implicit none
-
-  type(c_ptr), intent(in) :: ida_mem
-  integer(c_int)  :: retval
-  integer(c_long) :: nst(1), nni(1), nje(1), nre(1), nreLS(1), nge(1), ncfn(1), netf(1)
-
-  !======= Internals ============
-
-  retval = FIDAGetNumSteps(ida_mem, nst)
-  if (retval /= 0) then
-    print *, 'Error in FIDAGetNumSteps, retval = ', retval, '; halting'
-    stop 1
-  end if
-
-  retval = FIDAGetNumResEvals(ida_mem, nre)
-  if (retval /= 0) then
-    print *, 'Error in FIDAGetNumResEvals, retval = ', retval, '; halting'
-    stop 1
-  end if
-
-  retval = FIDAGetNumJacEvals(ida_mem, nje)
-  if (retval /= 0) then
-    print *, 'Error in FIDAGetNumJacEvals, retval = ', retval, '; halting'
-    stop 1
-  end if
-
-  retval = FIDAGetNumNonlinSolvIters(ida_mem, nni)
-  if (retval /= 0) then
-    print *, 'Error in FIDAGetNumNonlinSolvIters, retval = ', retval, '; halting'
-    stop 1
-  end if
-
-  retval = FIDAGetNumErrTestFails(ida_mem, netf)
-  if (retval /= 0) then
-    print *, 'Error in FIDAGetNumErrTestFails, retval = ', retval, '; halting'
-    stop 1
-  end if
-
-  retval = FIDAGetNumNonlinSolvConvFails(ida_mem, ncfn)
-  if (retval /= 0) then
-    print *, 'Error in FIDAGetNumNonlinSolvConvFails, retval = ', retval, '; halting'
-    stop 1
-  end if
-
-  retval = FIDAGetNumLinResEvals(ida_mem, nreLS)
-  if (retval /= 0) then
-    print *, 'Error in FIDAGetNumLinResEvals, retval = ', retval, '; halting'
-    stop 1
-  end if
-
-  retval = FIDAGetNumGEvals(ida_mem, nge)
-  if (retval /= 0) then
-    print *, 'Error in FIDAGetNumGEvals, retval = ', retval, '; halting'
-    stop 1
-  end if
-
-  print *, " "
-  print *, "Final Run Statistics: "
-  print *, "Number of steps                    = ", nst
-  print *, "Number of residual evaluations     = ", nre + nreLS
-  print *, "Number of Jacobian evaluations     = ", nje
-  print *, "Number of nonlinear iterations     = ", nni
-  print *, "Number of error test failures      = ", netf
-  print *, "Number of nonlinear conv. failures = ", ncfn
-  print *, "Number of root fn. evaluations     = ", nge
-
-  return
-
-end subroutine PrintFinalStats
