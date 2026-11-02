@@ -59,6 +59,10 @@ contains
 
     !======= Internals ============
     call CPU_TIME(t1)
+    
+    ! update the signal values
+    call evaluate_signals(time) 
+    
     ! get data arrays from SUNDIALS vectors
     yval  => FN_VGetArrayPointer(sunvec_y)
     ypval => FN_VGetArrayPointer(sunvec_yp)

@@ -17,8 +17,8 @@
 ! Fluid system - sodium side
 !----- -----1----- -----2----- -----3----- -----4----- -----5----- -----6----- -----7----- -----8----- -----9----- -----0-----
 ! The pipes
-!!!!!!! id          matid      category      p0(Pa)    tmp0(K)          sigid
- &XPZRV id='CNPRI'  mat='Na1'  cate='fill'   p0=5.0d5  tmp0=600.0000d0  sigid='tna_in'/
+!!!!!!! id          id_l        id_g        mat_l        mat_g        dia_i    len_t    level0    htc_i0    tgas0    tliq0    pres0
+ &XPZRV id='CNPRI'  id_l='LIQ'  id_g='GAS'  mat_l='h2o'  mat_g='n2g'  dia_i=  tmp0=600.0000d0  sigid='tna_in'/
 !!!!!!! id          matid      category      nz(-)     dhyd(m)         length(m)     areaz(m2)       dir(-)    tmp0(K)     p0(Pa)
  &XPIPE id='PE100'  mat='Na1'  cate='round'  nz=14     dhyd=5.1816d-2  len=14.021d0  areaz=4.891d-1  dir=-1.d0 tmp0=5.0d2  p0=5.0d5 /
 !!!!!!! id          matid      category      tmp0(K)     p0(Pa)      sigid

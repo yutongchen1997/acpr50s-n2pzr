@@ -15,7 +15,6 @@ module control_mod
   !== SHARED variables ==
   character(len=20) :: id, mat, typ, fcpid, sigid
   !character(len=20) :: mats(maxnlyr) = 'end'
-  real(c_double) :: temp0, pres0
   !== UNIQUE variables ==
   ! XTIME variables-------------------------------------------------01
   real(c_double) :: tstart= 0.0d00, tend = 1.d+02, dtotp = 1.d+01
@@ -29,12 +28,12 @@ module control_mod
   integer(c_int) :: maxnef= 7, maxcor = 3
   ! XPZRV variables-------------------------------------------------03
   character(len=20) :: id_l, id_g, mat_l, mat_g
-  real(c_double) :: dia_i, len_t, level0, tgas0, tliq0
-  real(c_double) :: htc_i0
+  real(c_double) :: dia_i, len_t, level0, htc_i0
+  real(c_double) ::tgas0, tliq0, pgas0
   ! XPIPE variables-------------------------------------------------04
   ! temporarily left blank
   ! XBNDC variables-------------------------------------------------05
-  character(len=20) :: sig_p, sig_t
+  character(len=20) :: sig_p, sig_t, pf0, tf0
   ! XJUNC variables-------------------------------------------------06
   character(len=20) :: fid_f, fid_t
   ! XCORE variables-------------------------------------------------07
@@ -57,10 +56,10 @@ module control_mod
                    solopt, eosopt
   ! XPZRV namelist 03.----------------------------------------------
   NAMELIST /XPZRV/ id    , id_l  , id_g  , mat_l , mat_g , dia_i , &
-                   len_t , level0, htc_i0, tgas0 , tliq0 , pres0
+                   len_t , level0, htc_i0, tgas0 , tliq0 , pgas0
   ! XPIPE namelist 04.----------------------------------------------
   ! XBNDC namelist 05.----------------------------------------------
-  NAMELIST /XBNDC/ id    , mat   , typ   , temp0 , pres0 , sig_p , &
+  NAMELIST /XBNDC/ id    , mat   , typ   , pf0   , tf0   , sig_p , &
                    sig_t
   ! XJUNC namelist 06.----------------------------------------------
   NAMELIST /XJUNC/ typ   , fid_f , fid_t , sigid
@@ -194,7 +193,7 @@ module control_mod
           inp_pzrv(3) = level0
           inp_pzrv(4) = tgas0
           inp_pzrv(5) = tliq0
-          inp_pzrv(6) = pres0
+          inp_pzrv(6) = pgas0
           inp_pzrv(7) = htc_i0
           call pvessel_arr(i)%init_pvessel(id, id_l, id_g, mat_l, mat_g, inp_pzrv)
           deallocate(inp_pzrv)

@@ -258,10 +258,6 @@ contains
     real(c_double) :: hg, hl, mg, ml
     integer(c_int) :: i, j, k
     !======= Internals ============
-    ! update fluid boundary cell properties
-    do i = 1, self%nbndc
-      call self%bndcs(i)%updt_flubndc()
-    end do
     ! calculate the mass and energy transport between fluid components
     do i = 1, self%npzrv
       ! initialization of pvessels inlets/outlets
