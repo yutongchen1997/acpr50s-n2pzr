@@ -71,14 +71,13 @@ module globdat_mod
   ! fluid index data
   integer(c_int), allocatable :: findindex(:,:) ! findindex(j,k) means the j-th pipe, k-th node's 'i' in 1-d array
   integer(c_int) :: pindex   ! index of the first pressure equation in Bx=b
-  integer(c_int) :: neq_mdot = 0 !
-  integer(c_int) :: neq_fvol = 0 ! fluid volume
-  integer(c_int) :: neq_enth = 0 ! fluid enthalpy
+  integer(c_int) :: neq_mdot = 0 ! number of equations related to junction mass flow rate
+  integer(c_int) :: neq_pzrv = 0 ! number of equations related to pvessel
   ! solid index data
-  integer(c_int) :: neq_hstr = 0 ! number of ode equations of heat structure node temperature
-  integer(c_int) :: neq_frod = 0 ! number of ode equations of fuelrod node temperature
+  integer(c_int) :: neq_hstr = 0 ! number of equations related to heat structure node temperature
+  integer(c_int) :: neq_frod = 0 ! number of equations related to fuelrod node temperature
   ! total number of DAEs 
-  integer(c_int) :: neq_tot = 0
+  integer(c_int) :: neq_tot = 0  ! total number of equations
   ! selection of gas-phase equation-of-state model
   character(len=20) :: eosopt = 'igas'
   ! parallel calculation data
