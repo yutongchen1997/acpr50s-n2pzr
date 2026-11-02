@@ -56,18 +56,19 @@ module pvessel_mod
 
 contains
 
-  subroutine init_pvessel(self, id_l, id_g, mat_l, mat_g, inp)
+  subroutine init_pvessel(self, id, id_l, id_g, mat_l, mat_g, inp)
     !======= Declarations =========
     implicit none
     !=== I/0 variables ===
     class(pvessel), intent(inout) :: self
-    character(len=20), intent(in) :: id_l, id_g, mat_l, mat_g
+    character(len=20), intent(in) :: id, id_l, id_g, mat_l, mat_g
     ! inp array: 1-dia_i, 2-len_t, 3-len_i, 4-tg0, 5-tl0, 6-pg0, 7-htc_0
     real(c_double), intent(in) :: inp(:) 
     !=== local variables ===
     real(c_double) :: rg0, rl0, s_hg0, s_hl0
     !======= Internals ============
     ! assign the input strings
+    self%id = id
     self%id_l = id_l
     self%id_g = id_g
     self%mat_l = mat_l

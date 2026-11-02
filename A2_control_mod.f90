@@ -56,8 +56,8 @@ module control_mod
   NAMELIST /XSOLV/ solver, rt    , at    , maxnef, maxcor, mxstps, &
                    solopt, eosopt
   ! XPZRV namelist 03.----------------------------------------------
-  NAMELIST /XPZRV/ id_l  , id_g  , mat_l , mat_g , dia_i , len_t , &
-                   level0, htc_i0, tgas0 , tliq0 , pres0
+  NAMELIST /XPZRV/ id    , id_l  , id_g  , mat_l , mat_g , dia_i , &
+                   len_t , level0, htc_i0, tgas0 , tliq0 , pres0
   ! XPIPE namelist 04.----------------------------------------------
   ! XBNDC namelist 05.----------------------------------------------
   NAMELIST /XBNDC/ id    , mat   , typ   , temp0 , pres0 , sig_p , &
@@ -196,7 +196,7 @@ module control_mod
           inp_pzrv(5) = tliq0
           inp_pzrv(6) = pres0
           inp_pzrv(7) = htc_i0
-          call pvessel_arr(i)%init_pvessel(id_l, id_g, mat_l, mat_g, inp_pzrv)
+          call pvessel_arr(i)%init_pvessel(id, id_l, id_g, mat_l, mat_g, inp_pzrv)
           deallocate(inp_pzrv)
           ! check and count the fluid show-up times
           ! liquid phase

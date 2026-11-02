@@ -37,7 +37,7 @@ program acprpzr
   integer(c_int) :: iout, retval
   ! integers
   integer, parameter :: myindextype = selected_int_kind(16)
-  integer(kind=myindextype), parameter :: nout = 100
+  integer(kind=myindextype), parameter :: NOUT = 100
   integer(kind=myindextype) :: neq = 0
   ! SUNDIALS types
   type(N_Vector), pointer :: sunvec_y      ! sundials solution vector
