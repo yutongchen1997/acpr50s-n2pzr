@@ -71,6 +71,9 @@ contains
     ! read the system_glo data from SUNDIALS vectors
     call system_glo%read_from_y_and_yp(yval, ypval)
     
+    ! allocate residual array
+
+    allocate()
 
 
     ! fill residual vector
