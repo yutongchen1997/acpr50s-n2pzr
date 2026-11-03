@@ -49,9 +49,7 @@ program acprpzr
   type(c_ptr)                       :: ida_mem       ! IDA memory
   type(c_ptr)                       :: sunctx        ! SUNDIALS simulation context
 
-  ! solution and tolerance vectors, neq is set in the dae_mod module
-  real(c_double) :: rtol
-  real(c_double), allocatable :: avtol(:)
+  ! solution and derivative vectors, neq is set in the dae_mod module
   real(c_double), allocatable :: yval(:), ypval(:)
   real(c_double), allocatable :: id_vals(:)  ! variable-ID vector for FIDACalcIC
 

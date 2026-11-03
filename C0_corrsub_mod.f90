@@ -106,7 +106,7 @@ contains
         call interp2d(p_n2g,h_n2g,tpf_n2g(1,:,:),pg_1,hg,rg_1)    !column 1 - density
         d_rg = rg-rg_1    ! difference between input and estimated density
         icount = 0
-        do while(abs(d_rg)/rg>1.0d-4)
+        do while(abs(d_rg)/rg>rtol)
           if(d_rg>0.d0) then
             ! the estimated pg is lower than true value
             pg_2 = pg_1+1.d0
@@ -204,7 +204,7 @@ contains
       case('igas')    ! use ideal gas eos model
         rg = gam_n2*pg/hg/(gam_n2-1.d0)
       case('nist')    ! interpolate with NIST table
-        call interp2d(p_n2g,h_n2g,tpf_n2g(2,:,:),pg,hg,rg)
+        call interp2d(p_n2g,h_n2g,tpf_n2g(1,:,:),pg,hg,rg)
       case default
         print*, 'no match for eos model = ', eosmod
         stop 'program stopped at rgeos_n2g'

@@ -59,6 +59,9 @@ module globdat_mod
   logical :: solve_htstr  = .FALSE.
   logical :: solve_fluid  = .FALSE.
   logical :: set_dtprint  = .FALSE.
+  ! relative tolerance and absolute tolerance
+  real(c_double) :: rtol
+  real(c_double), allocatable :: avtol(:)
   ! N2 gas thermal property data
   real(c_double), allocatable :: p_n2g(:)
   real(c_double), allocatable :: h_n2g(:)

@@ -23,6 +23,7 @@ module pvessel_mod
     ! other parameters ---------------------------------------------
     ! cross-sectional area, total vessel volume
     real(c_double) :: csa_z, vol_t
+    ! volume when freelevel fills lower head, reaches upper head 
     real(c_double) :: vol_l, vol_u
     ! boundary conditions ------------------------------------------
     ! mass flow rates: gas inlet, gas exit, surge line
@@ -51,6 +52,8 @@ module pvessel_mod
   contains  
     !=== Member Procedures === 
     procedure :: init_pvessel
+    procedure :: calc_liq_vol
+    procedure :: get_liq_lvl
     procedure :: calc_res_pvessel
 
   end type pvessel
@@ -86,7 +89,7 @@ contains
     ! calculate cross-sectional area
     self%csa_z = pi*self%dia_i**2.d0/4.d0
     ! calculate total volume, initial liquid and gas volume
-    call get_liq_vol(self)
+    call calc_liq_vol(self)
     self%v_g = self%vol_t-self%v_l
     ! calcualte initial liquid and gas specific enthalpy [J/kg]
     call hgeos_n2g(eosopt, self%p_g, self%t_g, s_hg0)
@@ -104,7 +107,7 @@ contains
     self%qlg_i = self%htc_i*self%csa_z*(self%t_l-self%t_g)
   end subroutine init_pvessel
 
-  subroutine get_liq_vol(self)
+  subroutine calc_liq_vol(self)
     !======= Declarations =========
     implicit none
     !=== I/0 variables ===
@@ -112,12 +115,15 @@ contains
     !=== local variables ===
     !======= Internals ============
     select case (self%shape)
-      case('cylindrical PV')
+      case('cylindrical')
         self%vol_t = self%csa_z*self%len_t
+        self%vol_l = self%vol_t
+        self%vol_u = self%vol_t
         self%v_l = self%csa_z*self%z_l
-      case('hemispherical-head PV')
-        self%vol_t = self%csa_z*(self%len_t-1.0*self%dia_i)
-        self%vol_t = self%vol_t + (pi*self%dia_i**3.d0)/6.d0
+      case('hemispherical')
+        self%vol_l = (pi*self%dia_i**3.d0)/12.d0  ! volume of the hemisphere
+        self%vol_u = self%vol_l + self%csa_z*(self%len_t-1.0*self%dia_i)
+        self%vol_t = self%vol_u + self%vol_l  
         if(self%z_l<0.5*self%dia_i) then
           self%v_l = (pi*self%z_l**2.d0)*(1.5d0*self%dia_i-self%z_l)/3.d0
         else if(self%z_l<self%len_t-0.5*self%dia_i) then
@@ -132,7 +138,7 @@ contains
         print*, 'no match for PV shape = ', self%shape
         stop 'program stopped at init_pvessel'
     end select
-  end subroutine get_liq_vol
+  end subroutine calc_liq_vol
 
   subroutine get_liq_lvl(self)
     !======= Declarations =========
@@ -140,27 +146,26 @@ contains
     !=== I/0 variables ===
     class(pvessel), intent(inout) :: self
     !=== local variables ===
-    real(c_double) :: z_g
+    real(c_double) :: zg, vg
     !======= Internals ============
     select case (self%shape)
-      case('cylindrical PV')
+      case('cylindrical')
         self%z_l = self%v_l/self%csa_z
-      case('hemispherical-head PV')
+      case('hemispherical')
         if(self%v_l<self%vol_l) then
-          
+          self%z_l = (self%dia_i/2.d0)*(1.d0-2.d0*SIN(ASIN(1.d0-12.d0*self%v_l/pi/(self%dia_i**3.d0))/3.d0))
         else if(self%v_l<self%vol_u) then
-           
+          self%z_l = (self%v_l-self%vol_l)/self%csa_z + self%dia_i/2.d0
         else
-          z_g = 0.5d0*self%dia_i - ((0.25d0*self%dia_i**3.d0-3.d0*self%v_g/pi)**(1.d0/3.d0))
-          self%z_l = self%len_t - z_g
+          vg = self%vol_t - self%v_l
+          zg = (self%dia_i/2.d0)*(1.d0-2.d0*SIN(ASIN(1.d0-12.d0*vg/pi/(self%dia_i**3.d0))/3.d0))
+          self%z_l = self%len_t - zg
         end if
       case default
         print*, 'no match for PV shape = ', self%shape
         stop 'program stopped at init_pvessel'
     end select
   end subroutine get_liq_lvl
-
-
 
   subroutine calc_res_pvessel(self, res)
     !======= Declarations =========

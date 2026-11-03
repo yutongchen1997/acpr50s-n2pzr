@@ -151,7 +151,7 @@ contains
         self%fluid%pzrvs(i)%dvgdt= ypval(k)
         k = k + 1
         ! update liquid level
-        call self%fluid%pzrvs(i)%get_liq_level()
+        call self%fluid%pzrvs(i)%get_liq_lvl()
       end do
       ! external fluid junctions----------------------------------------
       do i = 1, self%fluid%njunc

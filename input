@@ -11,14 +11,14 @@
  &XTIME  tstart=0.d00  tend=1.0d04  dtotp=5.d0    dtini=1.0d-10  dtmin=1.0d-15  dtmax=1.0d-1 /
 !!!!!!!  solvers 1.       2.       rt(-)       at                                     mxstps      maxnef     maxcor
  &XSOLV  solver='fluid'            rt=1.0d-06  at=1.0d-6,1.0d-6,1.0d-6,1.0d-6,1.0d-6  mxstps=500  maxnef=10  maxcor=10
-!!!!!!!  solopt 
-         solopt = 1 /
+!!!!!!!  solopt    eosopt
+         solopt=1  eosopt='igas'/
 !----- -----1----- -----2----- -----3----- -----4----- -----5----- -----6----- -----7----- -----8----- -----9----- -----0-----
 ! Fluid system - the pressurizer built by CNPRI
 !----- -----1----- -----2----- -----3----- -----4----- -----5----- -----6----- -----7----- -----8----- -----9----- -----0-----
 ! The pressure vessels
 !!!!!!!  id          id_l        id_g        mat_l        mat_g        shape
- &XPZRV  id='CNPRI'  id_l='LIQ'  id_g='GAS'  mat_l='h2o'  mat_g='n2g'  shape='cylinder' 
+ &XPZRV  id='CNPRI'  id_l='LIQ'  id_g='GAS'  mat_l='h2o'  mat_g='n2g'  shape='hemispherical' 
  !!!!!!!  dia_i          len_t         lvl0         htc_i0
           dia_i=0.330d0  len_t=2.37d0  lvl0=0.24d0  htc_i0=30.d0
  !!!!!!!  tgas0           tliq0           pgas0
