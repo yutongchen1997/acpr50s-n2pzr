@@ -19,6 +19,7 @@ module control_mod
   ! XTIME variables-------------------------------------------------01
   real(c_double) :: tstart= 0.0d00, tend = 1.d+02, dtotp = 1.d+01
   real(c_double) :: dtini = 1.d-08, dtmin= 1.d-08, dtmax = 1.d-01
+  integer(c_int) :: nout  = 1.d+08
   ! XSOLV variables-------------------------------------------------02
   character(len=20) :: solver(nsolvr) = 'end'
   real(c_double) :: rt    = 1.0d-4
@@ -50,7 +51,8 @@ module control_mod
   ! ----------------------------------------------------------------
   ! == NAMELIST declarations ==
   ! XTIME namelist 01.----------------------------------------------
-  NAMELIST /XTIME/ tstart, tend  , dtotp , dtini , dtmin , dtmax
+  NAMELIST /XTIME/ tstart, tend  , dtotp , dtini , dtmin , dtmax,  &
+                   nout
   ! XSOLV namelist 02.----------------------------------------------
   NAMELIST /XSOLV/ solver, rt    , at    , maxnef, maxcor, mxstps, &
                    solopt, eosopt

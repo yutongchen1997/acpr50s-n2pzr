@@ -37,13 +37,13 @@ program acprpzr
   integer(c_int) :: iout, retval
   ! integers
   integer, parameter :: myindextype = selected_int_kind(16)
-  integer(kind=myindextype), parameter :: NOUT = 720
   integer(kind=myindextype) :: neq = 0
   ! SUNDIALS types
   type(N_Vector), pointer :: sunvec_y      ! sundials solution vector
   type(N_Vector), pointer :: sunvec_yp     ! sundials derivative vector
   type(N_Vector), pointer :: sunvec_av     ! sundials tolerance vector
-  type(SUNMatrix), pointer :: sunmat_A      ! sundials matrix
+  type(N_Vector), pointer :: sunvec_id     ! sundials variable-ID vector (for FIDACalcIC)
+  type(SUNMatrix), pointer :: sunmat_A     ! sundials matrix
   type(SUNLinearSolver), pointer :: sunlinsol_LS  ! sundials linear solver
   type(SUNNonLinearSolver), pointer :: sunnonlin_NLS ! sundials nonlinear solver
   type(c_ptr)                       :: ida_mem       ! IDA memory
@@ -53,6 +53,7 @@ program acprpzr
   real(c_double) :: rtol
   real(c_double), allocatable :: avtol(:)
   real(c_double), allocatable :: yval(:), ypval(:)
+  real(c_double), allocatable :: id_vals(:)  ! variable-ID vector for FIDACalcIC
 
   !======= Internals ============
   call CPU_TIME(tic)
@@ -72,6 +73,7 @@ program acprpzr
   allocate(yval(neq))
   allocate(ypval(neq))
   allocate(avtol(neq))
+  allocate(id_vals(neq))
   if(neq_mdot>0) then
     ! under active development ... 2026/11/02-1453
   end if
@@ -108,8 +110,6 @@ program acprpzr
     print *, 'ERROR: sunvec = NULL'
     stop 1
   end if
-
-
 
   ! Call FIDACreate and FIDAInit to initialize IDA memory
   ida_mem = FIDACreate(sunctx)
@@ -234,27 +234,80 @@ program acprpzr
     stop 1
   end if
   !
-  mxstps = mxstps   ! User-configurable, default (500)
+  ! User-configurable, default (500)
   retval = FIDASetMaxNumSteps(ida_mem, mxstps)
-  maxnef = maxnef     ! User-configurable, default (10)
-  retval = FIDASetMaxErrTestFails(ida_mem, maxnef)
-  maxcor = maxcor     ! User-configurable, default (4)
-  retval = FIDASetMaxNonlinIters(ida_mem, maxcor)
+  if (retval /= 0) then
+    print *, 'Error in FIDASetMaxNumSteps, retval = ', retval, '; halting'
+    stop 1
+  end if
   !
-  !  set initial, minimum, maximum timestep
+  ! User-configurable, default (10)
+  retval = FIDASetMaxErrTestFails(ida_mem, maxnef)
+  if (retval /= 0) then
+    print *, 'Error in FIDASetMaxErrTestFails, retval = ', retval, '; halting'
+    stop 1
+  end if
+  !
+  ! User-configurable, default (10)
+  retval = FIDASetMaxNonlinIters(ida_mem, maxcor)
+  if (retval /= 0) then
+    print *, 'Error in FIDASetMaxNonlinIters, retval = ', retval, '; halting'
+    stop 1
+  end if
+  !
+  ! set initial timestep
   retval = FIDASetInitStep(ida_mem, dtini)
-  retval = FIDASetMinStep(ida_mem, dtmin)
+  if (retval /= 0) then
+    print *, 'Error in FIDASetInitStep, retval = ', retval, '; halting'
+    stop 1
+  end if
+  ! set maximum timestep
   retval = FIDASetMaxStep(ida_mem, dtmax)
-
-  ! In loop, call IDASolve, print results, and test for error.
-  ! Break out of loop when NOUT preset output times have been reached.
-  
+  if (retval /= 0) then
+    print *, 'Error in FIDASetMaxStep, retval = ', retval, '; halting'
+    stop 1
+  end if
+  ! set minimum timestep
+  retval = FIDASetMinStep(ida_mem, dtmin)
+  if (retval /= 0) then
+    print *, 'Error in FIDASetMinStep, retval = ', retval, '; halting'
+    stop 1
+  end if
+  !
   iout = 0
   tout = tstart
+  !
+  ! ### KONSTANTIN MIKITYUK - START
+  ! Always set the id vector and supress algebraic vars from LTE test.
+  !!!!!!!!call set_id_vector(id_vals)
+  !!!!!!!!sunvec_id => FN_VMake_Serial(neq, id_vals, sunctx)
+  !!!!!!!!if (.not. associated(sunvec_id)) then
+  !!!!!!!!   print *, 'ERROR: sunvec_id = NULL'
+  !!!!!!!!   stop
+  !!!!!!!!end if
+  !!!!!!!!retval = FIDASetId(ida_mem, sunvec_id)
+  !!!!!!!!if (retval /= 0) then
+  !!!!!!!!   print *, 'Error in FIDASetId, retval = ', retval
+  !!!!!!!!   stop
+  !!!!!!!!end if
+  !!!!!!!!retval = FIDASetSuppressAlg(ida_mem, 1_c_int)
+  !!!!!!!!if (retval /= 0) then
+  !!!!!!!!   print *, 'Warning: IDASetSuppressAlg returned retval = ', retval
+  !!!!!!!!end if
+  ! IDA_YA_YDP_INIT: 
+  ! Get the consistent initial values of y(t0) and y'(t0) vectors
+  !!!!!!!!print*, 'Re-calculating initial derivative vectors via FIDACalcIC...'
+  !!!!!!!!retval = FIDACalcIC(ida_mem, IDA_YA_YDP_INIT, tout + dtini)
+  ! ### KONSTANTIN MIKITYUK - END
+  !
   call print_output_files(tout)
+  write(*,'(A,I0,A,A,G0)') 'iout = ',iout,'    ','tout = ',tout
   ! push on to the next step
+  iout = 1
   tout = tout + dtotp
-  
+  !
+  ! In loop, call IDASolve, print results, and test for error.
+  ! Break out of loop when nout preset output times have been reached.
   do while(tout<=tend)
     retval = FIDASolve(ida_mem, tout, tret, sunvec_y, sunvec_yp, IDA_NORMAL)
     if (retval < 0) then
@@ -263,14 +316,14 @@ program acprpzr
     end if
     ! output current data
     call print_output_files(tout)
-    print*, iout, tout
+    write(*,'(A,I0,A,A,G0)') 'iout = ',iout,'    ','tout = ',tout
     if (retval == IDA_SUCCESS) then
       iout = iout + 1
       tout = tout + dtotp
     end if
-
-    if (iout == NOUT) exit
-    
+    !
+    if (iout == nout) exit
+    !
   end do
 
   ! free memory
@@ -282,8 +335,9 @@ program acprpzr
   call FN_VDestroy(sunvec_av)
   call FN_VDestroy(sunvec_yp)
   retval = FSUNContext_Free(sunctx)
-
+  !
   call CPU_TIME(tac)
   print*, 'total CPU time = ', tac - tic
+
 end program acprpzr
 

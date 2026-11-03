@@ -150,6 +150,8 @@ contains
         self%fluid%pzrvs(i)%v_g  = yval(k)
         self%fluid%pzrvs(i)%dvgdt= ypval(k)
         k = k + 1
+        ! update liquid level
+        self%fluid%pzrvs(i)%z_l = self%fluid%pzrvs(i)%v_l/self%fluid%pzrvs(i)%csa_z
       end do
       ! external fluid junctions----------------------------------------
       do i = 1, self%fluid%njunc

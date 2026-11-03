@@ -10,7 +10,7 @@
 !!!!!!!  tstart(s)     tend(s)      dtotp(s)      dtini(s)       dtmin(s)       dtmax(s)
  &XTIME  tstart=0.d00  tend=1.0d04  dtotp=5.d0    dtini=1.0d-10  dtmin=1.0d-15  dtmax=1.0d-1 /
 !!!!!!!  solvers 1.       2.       rt(-)       at                                     mxstps      maxnef     maxcor
- &XSOLV  solver='fluid'            rt=1.0d-04  at=1.0d-6,1.0d-6,1.0d-6,1.0d-6,1.0d-6  mxstps=500  maxnef=10  maxcor=4
+ &XSOLV  solver='fluid'            rt=1.0d-06  at=1.0d-6,1.0d-6,1.0d-6,1.0d-6,1.0d-6  mxstps=500  maxnef=10  maxcor=10
 !!!!!!!  solopt 
          solopt = 1 /
 !----- -----1----- -----2----- -----3----- -----4----- -----5----- -----6----- -----7----- -----8----- -----9----- -----0-----
@@ -18,7 +18,7 @@
 !----- -----1----- -----2----- -----3----- -----4----- -----5----- -----6----- -----7----- -----8----- -----9----- -----0-----
 ! The pressure vessels
 !!!!!!!  id          id_l        id_g        mat_l        mat_g        dia_i          len_t        lvl0         htc_i0
- &XPZRV  id='CNPRI'  id_l='LIQ'  id_g='GAS'  mat_l='h2o'  mat_g='n2g'  dia_i=0.673d0  len_t=2.5d0  lvl0=0.24d0  htc_i0=0.d0
+ &XPZRV  id='CNPRI'  id_l='LIQ'  id_g='GAS'  mat_l='h2o'  mat_g='n2g'  dia_i=0.673d0  len_t=2.5d0  lvl0=0.24d0  htc_i0=2.d0
 !!!!!!!  tgas0           tliq0           pgas0
          tgas0=353.15d0  tliq0=353.15d0  pgas0=8.3d6 /
 ! The fluid boundary cells
@@ -32,7 +32,12 @@
 !----- -----1----- -----2----- -----3----- -----4----- -----5----- -----6----- -----7----- -----8----- -----9----- -----0-----
 !!!!!!! id            typ          val
  &XSGNL id='p_tank'   typ='const'  val=8.3d6  /
- &XSGNL id='t_tank'   typ='const'  val=353.15 /
+ &XSGNL id='t_tank'   typ='tdsig'
+!!!!!!! tab 
+        tab(1,:) = 0.0000d0, 7.2000d3, 1.0800d4
+        tab(2,:) = 353.15d0, 473.15d0, 533.15d0
+ /
+ !!!!!!! id            typ          val
  &XSGNL id='surge_in' typ='const'  val=6.0d-3 /
 !----- -----1----- -----2----- -----3----- -----4----- -----5----- -----6----- -----7----- -----8----- -----9----- -----0-----
 !----- ----------- ----------- ----------- ----------- ----------- ----------- ----------- ----------- ----------- -----------
