@@ -17,10 +17,12 @@
 ! Fluid system - the pressurizer built by CNPRI
 !----- -----1----- -----2----- -----3----- -----4----- -----5----- -----6----- -----7----- -----8----- -----9----- -----0-----
 ! The pressure vessels
-!!!!!!!  id          id_l        id_g        mat_l        mat_g        dia_i          len_t        lvl0         htc_i0
- &XPZRV  id='CNPRI'  id_l='LIQ'  id_g='GAS'  mat_l='h2o'  mat_g='n2g'  dia_i=0.673d0  len_t=2.5d0  lvl0=0.24d0  htc_i0=2.d0
-!!!!!!!  tgas0           tliq0           pgas0
-         tgas0=353.15d0  tliq0=353.15d0  pgas0=8.3d6 /
+!!!!!!!  id          id_l        id_g        mat_l        mat_g        shape
+ &XPZRV  id='CNPRI'  id_l='LIQ'  id_g='GAS'  mat_l='h2o'  mat_g='n2g'  shape='cylinder' 
+ !!!!!!!  dia_i          len_t         lvl0         htc_i0
+          dia_i=0.330d0  len_t=2.37d0  lvl0=0.24d0  htc_i0=30.d0
+ !!!!!!!  tgas0           tliq0           pgas0
+          tgas0=300.00d0  tliq0=300.00d0  pgas0=8.3d6 /
 ! The fluid boundary cells
 !!!!!!!  id         mat        typ         pf0        tf0           sig_p           sig_t
  &XBNDC  id='TANK'  mat='h2o'  typ='w_in'  pf0=8.3d6  tf0=353.15d0  sig_p='p_tank'  sig_t='t_tank'/

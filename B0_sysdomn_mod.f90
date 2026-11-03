@@ -59,27 +59,27 @@ contains
       ! pvessel data----------------------------------------------------
       do i = 1, self%fluid%npzrv
         ! fluid masses to be solved by sundials
-        yval(k) = self%fluid%pzrvs(i)%m_l
+        yval(k) = self%fluid%pzrvs(i)%m_l  ! 01
         k = k + 1
-        yval(k) = self%fluid%pzrvs(i)%m_g
+        yval(k) = self%fluid%pzrvs(i)%m_g  ! 02
         k = k + 1
         ! fluid total ENTHALPIES to be solved by sundials
-        yval(k) = self%fluid%pzrvs(i)%h_l
+        yval(k) = self%fluid%pzrvs(i)%h_l  ! 03
         k = k + 1
-        yval(k) = self%fluid%pzrvs(i)%h_g
+        yval(k) = self%fluid%pzrvs(i)%h_g  ! 04
         k = k + 1
         ! fluid pressure to be solved by sundials
-        yval(k) = self%fluid%pzrvs(i)%p_g
+        yval(k) = self%fluid%pzrvs(i)%p_g  ! 05
         k = k + 1
         ! fluid  temperatures to be solved by sundials
-        yval(k) = self%fluid%pzrvs(i)%t_l
+        yval(k) = self%fluid%pzrvs(i)%t_l  ! 06
         k = k + 1
-        yval(k) = self%fluid%pzrvs(i)%t_g
+        yval(k) = self%fluid%pzrvs(i)%t_g  ! 07
         k = k + 1
         ! fluid volumes to be solved by sundials
-        yval(k) = self%fluid%pzrvs(i)%v_l
+        yval(k) = self%fluid%pzrvs(i)%v_l  ! 08
         k = k + 1
-        yval(k) = self%fluid%pzrvs(i)%v_g
+        yval(k) = self%fluid%pzrvs(i)%v_g  ! 09
         k = k + 1
       end do
       ! external junctions----------------------------------------------
@@ -151,7 +151,7 @@ contains
         self%fluid%pzrvs(i)%dvgdt= ypval(k)
         k = k + 1
         ! update liquid level
-        self%fluid%pzrvs(i)%z_l = self%fluid%pzrvs(i)%v_l/self%fluid%pzrvs(i)%csa_z
+        call self%fluid%pzrvs(i)%get_liq_level()
       end do
       ! external fluid junctions----------------------------------------
       do i = 1, self%fluid%njunc

@@ -17,12 +17,13 @@ module pvessel_mod
     ! required input parameters ------------------------------------
     character(len=20) :: id
     ! id string of liq and gas section, material of liq and gas
-    character(len=20) :: id_l, id_g, mat_l, mat_g
+    character(len=20) :: id_l, id_g, mat_l, mat_g, shape
     ! inner diameter, total vessel height
     real(c_double) :: dia_i, len_t
     ! other parameters ---------------------------------------------
     ! cross-sectional area, total vessel volume
-    real(c_double) :: csa_z, vol_t 
+    real(c_double) :: csa_z, vol_t
+    real(c_double) :: vol_l, vol_u
     ! boundary conditions ------------------------------------------
     ! mass flow rates: gas inlet, gas exit, surge line
     real(c_double) :: wg_in, wg_ex, wl_su
@@ -56,12 +57,12 @@ module pvessel_mod
 
 contains
 
-  subroutine init_pvessel(self, id, id_l, id_g, mat_l, mat_g, inp)
+  subroutine init_pvessel(self, id, id_l, id_g, mat_l, mat_g, shape, inp)
     !======= Declarations =========
     implicit none
     !=== I/0 variables ===
     class(pvessel), intent(inout) :: self
-    character(len=20), intent(in) :: id, id_l, id_g, mat_l, mat_g
+    character(len=20), intent(in) :: id, id_l, id_g, mat_l, mat_g, shape
     ! inp array: 1-dia_i, 2-len_t, 3-len_i, 4-tg0, 5-tl0, 6-pg0, 7-htc_0
     real(c_double), intent(in) :: inp(:) 
     !=== local variables ===
@@ -73,6 +74,7 @@ contains
     self%id_g = id_g
     self%mat_l = mat_l
     self%mat_g = mat_g
+    self%shape = shape
     ! assign the input parameters
     self%dia_i = inp(1)
     self%len_t = inp(2)
@@ -82,11 +84,9 @@ contains
     self%p_g   = inp(6)
     self%htc_i = inp(7)
     ! calculate cross-sectional area
-    self%csa_z = pi*inp(1)**2.d0/4.d0
-    ! calculate total volume
-    self%vol_t = self%csa_z*inp(2)
-    ! calculate initial liquid and gas volume
-    self%v_l = self%csa_z*self%z_l
+    self%csa_z = pi*self%dia_i**2.d0/4.d0
+    ! calculate total volume, initial liquid and gas volume
+    call get_liq_vol(self)
     self%v_g = self%vol_t-self%v_l
     ! calcualte initial liquid and gas specific enthalpy [J/kg]
     call hgeos_n2g(eosopt, self%p_g, self%t_g, s_hg0)
@@ -103,6 +103,64 @@ contains
     ! calculate initial liquid to gas freelevel heating rate [W]
     self%qlg_i = self%htc_i*self%csa_z*(self%t_l-self%t_g)
   end subroutine init_pvessel
+
+  subroutine get_liq_vol(self)
+    !======= Declarations =========
+    implicit none
+    !=== I/0 variables ===
+    class(pvessel), intent(inout) :: self
+    !=== local variables ===
+    !======= Internals ============
+    select case (self%shape)
+      case('cylindrical PV')
+        self%vol_t = self%csa_z*self%len_t
+        self%v_l = self%csa_z*self%z_l
+      case('hemispherical-head PV')
+        self%vol_t = self%csa_z*(self%len_t-1.0*self%dia_i)
+        self%vol_t = self%vol_t + (pi*self%dia_i**3.d0)/6.d0
+        if(self%z_l<0.5*self%dia_i) then
+          self%v_l = (pi*self%z_l**2.d0)*(1.5d0*self%dia_i-self%z_l)/3.d0
+        else if(self%z_l<self%len_t-0.5*self%dia_i) then
+          self%v_l = (pi*self%dia_i**3.d0)/12.d0
+          self%v_l = self%v_l + self%csa_z*(self%z_l-0.5*self%dia_i)
+        else
+          self%v_l = (pi*self%dia_i**3.d0)/12.d0 + self%csa_z*(self%len_t-self%dia_i)
+          self%v_l = self%v_l + pi/3.d0*(0.25d0*self%dia_i**3.d0 + &
+          (self%len_t-self%z_l)**3.d0-1.5d0*(self%len_t-self%z_l)**2.d0*self%dia_i)
+        end if
+      case default
+        print*, 'no match for PV shape = ', self%shape
+        stop 'program stopped at init_pvessel'
+    end select
+  end subroutine get_liq_vol
+
+  subroutine get_liq_lvl(self)
+    !======= Declarations =========
+    implicit none
+    !=== I/0 variables ===
+    class(pvessel), intent(inout) :: self
+    !=== local variables ===
+    real(c_double) :: z_g
+    !======= Internals ============
+    select case (self%shape)
+      case('cylindrical PV')
+        self%z_l = self%v_l/self%csa_z
+      case('hemispherical-head PV')
+        if(self%v_l<self%vol_l) then
+          
+        else if(self%v_l<self%vol_u) then
+           
+        else
+          z_g = 0.5d0*self%dia_i - ((0.25d0*self%dia_i**3.d0-3.d0*self%v_g/pi)**(1.d0/3.d0))
+          self%z_l = self%len_t - z_g
+        end if
+      case default
+        print*, 'no match for PV shape = ', self%shape
+        stop 'program stopped at init_pvessel'
+    end select
+  end subroutine get_liq_lvl
+
+
 
   subroutine calc_res_pvessel(self, res)
     !======= Declarations =========
@@ -139,6 +197,8 @@ contains
     res(9) = self%v_l+self%v_g-self%vol_t! total volume
     ! 
   end subroutine calc_res_pvessel
+
+
 
 
 end module pvessel_mod

@@ -28,7 +28,7 @@ module control_mod
   integer(c_int) :: maxnef= 7, maxcor = 3
   integer(c_int) :: solopt= 1
   ! XPZRV variables-------------------------------------------------03
-  character(len=20) :: id_l, id_g, mat_l, mat_g
+  character(len=20) :: id_l, id_g, mat_l, mat_g, shape
   real(c_double) :: dia_i, len_t, lvl0, htc_i0
   real(c_double) ::tgas0, tliq0, pgas0
   ! XPIPE variables-------------------------------------------------04
@@ -57,8 +57,9 @@ module control_mod
   NAMELIST /XSOLV/ solver, rt    , at    , maxnef, maxcor, mxstps, &
                    solopt, eosopt
   ! XPZRV namelist 03.----------------------------------------------
-  NAMELIST /XPZRV/ id    , id_l  , id_g  , mat_l , mat_g , dia_i , &
-                   len_t , lvl0  , htc_i0, tgas0 , tliq0 , pgas0
+  NAMELIST /XPZRV/ id    , id_l  , id_g  , mat_l , mat_g , shape , &
+                   dia_i , len_t , lvl0  , htc_i0, tgas0 , tliq0 , &
+                   pgas0
   ! XPIPE namelist 04.----------------------------------------------
   ! XBNDC namelist 05.----------------------------------------------
   NAMELIST /XBNDC/ id    , mat   , typ   , pf0   , tf0   , sig_p , &
@@ -200,7 +201,7 @@ module control_mod
           inp_pzrv(5) = tliq0
           inp_pzrv(6) = pgas0
           inp_pzrv(7) = htc_i0
-          call pvessel_arr(i)%init_pvessel(id, id_l, id_g, mat_l, mat_g, inp_pzrv)
+          call pvessel_arr(i)%init_pvessel(id, id_l, id_g, mat_l, mat_g, shape, inp_pzrv)
           deallocate(inp_pzrv)
           ! check and count the fluid show-up times
           ! liquid phase
