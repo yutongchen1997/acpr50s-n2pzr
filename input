@@ -20,7 +20,7 @@
 !!!!!!!  id          id_l        id_g        mat_l        mat_g        shape
  &XPZRV  id='CNPRI'  id_l='LIQ'  id_g='GAS'  mat_l='h2o'  mat_g='n2g'  shape='hemispherical' 
  !!!!!!!  dia_i          len_t         lvl0         htc_i0
-          dia_i=0.330d0  len_t=2.37d0  lvl0=0.24d0  htc_i0=30.d0
+          dia_i=0.330d0  len_t=2.37d0  lvl0=0.24d0  htc_i0=20.d0
  !!!!!!!  tgas0           tliq0           pgas0
           tgas0=300.00d0  tliq0=300.00d0  pgas0=8.3d6 /
 ! The fluid boundary cells
