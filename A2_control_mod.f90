@@ -491,7 +491,7 @@ module control_mod
       syscmd = 'mkdir '//ADJUSTL(TRIM(path4outdir))//'/'//'fluid'
       call SYSTEM(syscmd, istatus)
       if(istatus /= 0) then
-        print*, 'Failed to creat output directory for fluid, check your permession.'
+        stop 'Failed to creat output directory for fluid, check your permession.'
       else
         print*, 'Output directory created successfully for fluid.'
       end if
@@ -584,7 +584,28 @@ module control_mod
       colid = 'time'
       write(otpfu+k,'(A18)',advance='no')colid
       do i = 1, system_glo%fluid%njunc
-        write(colid,120)'mdot-',ADJUSTL(TRIM(system_glo%fluid%juncs(i)%id))
+        write(colid,110)'mdot-[',ADJUSTL(TRIM(system_glo%fluid%juncs(i)%id)),']'
+        write(otpfu+k,'(A18)',advance='no')colid
+      end do
+      write(otpfu+k,*)''
+      k = k + 1
+    end if
+    ! open control signal output files
+    if (system_glo%numsgnl>=1) then
+      syscmd = 'mkdir '//ADJUSTL(TRIM(path4outdir))//'/'//'signal'
+      call SYSTEM(syscmd, istatus)
+      if(istatus /= 0) then
+        stop 'Failed to creat output directory for fluid, check your permession.'
+      else
+        print*, 'Output directory created successfully for fluid.'
+      end if
+      fileid = 'signalvalues.dat'
+      open(unit=otpfu+k, file=ADJUSTL(TRIM(path4outdir))//'/'//'signal'//'/'//ADJUSTL(TRIM(fileid)), &
+      status='new', form='formatted')
+      colid = 'time'
+      write(otpfu+k,'(A18)',advance='no')colid
+      do i = 1, system_glo%numsgnl
+        write(colid,110)'sgnl-[',ADJUSTL(TRIM(system_glo%signals(i)%id)),']'
         write(otpfu+k,'(A18)',advance='no')colid
       end do
       write(otpfu+k,*)''
