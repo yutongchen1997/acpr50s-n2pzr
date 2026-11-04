@@ -599,6 +599,7 @@ module control_mod
       else
         print*, 'Output directory created successfully for fluid.'
       end if
+      ! signal values
       fileid = 'signalvalues.dat'
       open(unit=otpfu+k, file=ADJUSTL(TRIM(path4outdir))//'/'//'signal'//'/'//ADJUSTL(TRIM(fileid)), &
       status='new', form='formatted')
@@ -611,7 +612,6 @@ module control_mod
       write(otpfu+k,*)''
       k = k + 1
     end if
-
 
 100 format(I4.4, A1, I2.2, A1, I2.2, A1, I2.2, A1, I2.2, A1, I2.2)
 110 format(A, A, A)
@@ -706,8 +706,68 @@ module control_mod
       write(otpfu+k,*)''
       k = k + 1
     end if
+    ! write results to signal output files
+    if(system_glo%numsgnl>=1) then
+      ! signal values
+      write(colstr,'(ES18.8e2)')time
+      write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+      do i = 1, system_glo%numsgnl
+        write(colstr,'(ES18.8e2)')system_glo%signals(i)%val
+        write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+      end do
+      write(otpfu+k,*)''
+      k = k + 1
+    end if
     
   end subroutine print_output_files
 
+! ----------------------------------------------------------------------
+! close_output_files: a subroutine that close the output files, which
+! mirrors the file opening sequence in open_output_files
+! ----------------------------------------------------------------------
+  subroutine close_output_files()
+    !======= Declarations =========
+    implicit none
+    !== local variables ==
+    ! loop counters
+    integer(c_int) :: i, k
+
+    !======= Internals ============
+    k = 1 ! k serves as the pointer for output file unit
+    ! close fluid output files
+    if(solve_fluid) then
+      ! fluid boundary cells
+      do i = 1, system_glo%fluid%nbndc
+        close(unit=otpfu+k) ! fluid temperature
+        k = k + 1
+        close(unit=otpfu+k) ! fluid pressure
+        k = k + 1
+      end do
+      ! pressure vessel fluid
+      do i = 1, system_glo%fluid%npzrv
+        close(unit=otpfu+k) ! fluid temperature
+        k = k + 1
+        close(unit=otpfu+k) ! fluid mass
+        k = k + 1
+        close(unit=otpfu+k) ! fluid volume
+        k = k + 1
+        close(unit=otpfu+k) ! fluid pressure
+        k = k + 1
+        close(unit=otpfu+k) ! liquid level
+        k = k + 1
+      end do
+      ! fluid junction mass flowrates
+      close(unit=otpfu+k)
+      print*, 'Output files closed successfully for fluid.'
+      k = k + 1
+    end if
+    ! close control signal output files
+    if(system_glo%numsgnl>=1) then
+      close(unit=otpfu+k)
+      print*, 'Output files closed successfully for signal.'
+      k = k + 1
+    end if
+
+  end subroutine close_output_files
 
 end module control_mod

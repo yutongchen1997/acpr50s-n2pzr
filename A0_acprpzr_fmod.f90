@@ -62,6 +62,8 @@ program acprpzr
   call construct_input()
   ! open output files
   call open_output_files()
+  ! sleep for 3 seconds
+  call SLEEP(3)
   ! convert neq type
   neq = int(neq_tot, kind = myindextype)
 
@@ -323,7 +325,8 @@ program acprpzr
     if (iout == nout) exit
     !
   end do
-
+  ! close output files
+  call close_output_files()
   ! free memory
   call FIDAFree(ida_mem)
   retval = FSUNNonlinSolFree(sunnonlin_NLS)
