@@ -619,6 +619,13 @@ module control_mod
   end subroutine open_output_files
 
 ! ----------------------------------------------------------------------
+! echo_input: a subroutine that write calculation results to 
+! output files every output time step
+! ----------------------------------------------------------------------
+
+
+
+! ----------------------------------------------------------------------
 ! print_output_files: a subroutine that write calculation results to 
 ! output files every output time step
 ! ----------------------------------------------------------------------
