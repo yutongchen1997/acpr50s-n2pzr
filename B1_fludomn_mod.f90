@@ -7,7 +7,8 @@
 ! ------------------------------------------------------------------
 module fludomn_mod
   !======= Inclusions =========
-  use pvessel_mod
+  use flupzrv_mod
+  use flubrch_mod
   use flujunc_mod
   use flubndc_mod
 
@@ -19,7 +20,7 @@ module fludomn_mod
     ! number of boundary cells, external junctions
     integer(c_int) :: nbndc, njunc, npzrv
     ! pressurizer vessel object
-    type(pvessel), allocatable :: pzrvs(:)
+    type(flupzrv), allocatable :: pzrvs(:)
     ! array storing boundary cell objects
     type(flubndc), allocatable :: bndcs(:)
     ! array storing junction objects
@@ -86,7 +87,7 @@ contains
     implicit none
     !=== I/0 variables ===
     class(fludomn), intent(inout) :: self
-    class(pvessel), intent(in)    :: pzrv_arr(:)
+    class(flupzrv), intent(in)    :: pzrv_arr(:)
     !=== local variables ===
 
     !======= Internals ============
@@ -314,7 +315,7 @@ contains
     end do
     ! calculate residuals of equations related to pvessels
     do i = 1, self%npzrv
-      call self%pzrvs(i)%calc_res_pvessel(res(9*i-8:9*i))
+      call self%pzrvs(i)%calc_res_flupzrv(res(9*i-8:9*i))
     end do
     ! calculate residuals of equations related to junctions
     ! now under active development...

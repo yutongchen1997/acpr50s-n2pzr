@@ -23,7 +23,7 @@ module globdat_mod
   real(c_double), parameter :: minor  = 1.0d-20
   real(c_double), parameter :: large  = 1.0d+10
   real(c_double), parameter :: huge   = 1.0d+20
-  real(c_double), parameter :: endval = 1145141919810.d0   ! end marker
+  real(c_double), parameter :: endval =-1145141919810.d0   ! end marker
   ! array sizes
   integer(c_int), parameter :: maxtab = 100    ! maximum look-up table length
   integer(c_int), parameter :: maxnlyr= 10     ! maximum number of htstr layers
@@ -31,11 +31,12 @@ module globdat_mod
   integer(c_int), parameter :: nsolvr = 4      ! total number of available solvers
   integer(c_int), parameter :: nfluids= 2      ! total number of available fluids
   ! integers related to file units
-  integer(c_int), parameter :: inpfu  = 5      ! input file unit
-  integer(c_int), parameter :: otpfu  = 10     ! output file unit baseline
-  integer(c_int), parameter :: n2gfu  = 10001  ! N2 gas property data file unit
-  integer(c_int), parameter :: h2ofu  = 10005  ! H2O property data file unit
-  integer(c_int), parameter :: h2osu  = 10006  ! H2O saturated data file unit
+  integer(c_int), parameter :: inpfu  = 10000  ! input file unit
+  integer(c_int), parameter :: bakfu  = 10001  ! unit for the input backup files
+  integer(c_int), parameter :: otpfu  = 20000  ! output file unit baseline
+  integer(c_int), parameter :: n2gfu  = 90001  ! N2 gas property data file unit
+  integer(c_int), parameter :: h2ofu  = 90005  ! H2O property data file unit
+  integer(c_int), parameter :: h2osu  = 90006  ! H2O saturated data file unit
   ! indexes of namelist titles at array nmlstr(:)
   integer(c_int), parameter :: idxtime= 1      ! index of &XTIME - Time
   integer(c_int), parameter :: idxsolv= 2      ! index of &XSOLV - Solver

@@ -33,8 +33,10 @@ FILES    = A0_acprpzr_fmod
 FILES_DEPENDENCIES = C2_globdat_mod \
            C1_interpo_mod C1_readdat_mod \
 		   C0_corrsub_mod \
-		   B3_ctlsgnl_mod B2_sldbndc_mod B2_pvessel_mod B2_heatstr_mod \
-		   B2_flujunc_mod B2_flubndc_mod B1_slddomn_mod B1_fludomn_mod \
+		   B3_ctlsgnl_mod \
+		   B2_sldbndc_mod  B2_sldhstr_mod \
+		   B2_flujunc_mod B2_flubndc_mod B2_flubrch_mod B2_flupzrv_mod \
+		   B1_slddomn_mod B1_fludomn_mod \
 		   B0_sysdomn_mod A2_mfldcpl_mod A2_control_mod \
            A1_rescomp_mod \
 

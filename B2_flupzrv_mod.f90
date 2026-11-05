@@ -5,14 +5,14 @@
 ! This module defines type :: pvessel (pressurizer vessel).
 ! 
 ! ------------------------------------------------------------------
-module pvessel_mod
+module flupzrv_mod
   !======= Inclusions =========
   use ctlsgnl_mod
 
   !======= Declarations =========
   implicit none
 
-  type :: pvessel
+  type :: flupzrv
     !=== Member Variables === 
     ! required input parameters ------------------------------------
     character(len=20) :: id
@@ -49,22 +49,26 @@ module pvessel_mod
     ! internal variables -------------------------------------------
     real(c_double) :: htc_i   ! liq - gas interface htc - [W/m^2/K]  
     real(c_double) :: qlg_i   ! liq - gas heating rate  - [W]
+    ! temperature probe variables ----------------------------------
+    integer(c_int) :: n_tcs     ! number of TCs
+    real(c_double), allocatable :: z_tcs(:)  ! axial location of TCs
+    
   contains  
     !=== Member Procedures === 
-    procedure :: init_pvessel
+    procedure :: init_flupzrv
     procedure :: calc_liq_vol
     procedure :: get_liq_lvl
-    procedure :: calc_res_pvessel
+    procedure :: calc_res_flupzrv
 
-  end type pvessel
+  end type flupzrv
 
 contains
 
-  subroutine init_pvessel(self, id, id_l, id_g, mat_l, mat_g, shape, inp)
+  subroutine init_flupzrv(self, id, id_l, id_g, mat_l, mat_g, shape, inp)
     !======= Declarations =========
     implicit none
     !=== I/0 variables ===
-    class(pvessel), intent(inout) :: self
+    class(flupzrv), intent(inout) :: self
     character(len=20), intent(in) :: id, id_l, id_g, mat_l, mat_g, shape
     ! inp array: 1-dia_i, 2-len_t, 3-len_i, 4-tg0, 5-tl0, 6-pg0, 7-htc_0
     real(c_double), intent(in) :: inp(:) 
@@ -105,13 +109,13 @@ contains
     self%h_g = self%m_g*s_hg0
     ! calculate initial liquid to gas freelevel heating rate [W]
     self%qlg_i = self%htc_i*self%csa_z*(self%t_l-self%t_g)
-  end subroutine init_pvessel
+  end subroutine init_flupzrv
 
   subroutine calc_liq_vol(self)
     !======= Declarations =========
     implicit none
     !=== I/0 variables ===
-    class(pvessel), intent(inout) :: self
+    class(flupzrv), intent(inout) :: self
     !=== local variables ===
     !======= Internals ============
     select case (self%shape)
@@ -144,7 +148,7 @@ contains
     !======= Declarations =========
     implicit none
     !=== I/0 variables ===
-    class(pvessel), intent(inout) :: self
+    class(flupzrv), intent(inout) :: self
     !=== local variables ===
     real(c_double) :: zg, vg
     !======= Internals ============
@@ -167,11 +171,11 @@ contains
     end select
   end subroutine get_liq_lvl
 
-  subroutine calc_res_pvessel(self, res)
+  subroutine calc_res_flupzrv(self, res)
     !======= Declarations =========
     implicit none
     !=== I/0 variables ===
-    class(pvessel), intent(inout) :: self
+    class(flupzrv), intent(inout) :: self
     real(c_double), intent(out) :: res(:)
     !=== local variables ===
     real(c_double) :: rg, s_hg, s_hl
@@ -201,9 +205,9 @@ contains
     res(8) = self%v_l-self%m_l/rleos ! liq volume
     res(9) = self%v_l+self%v_g-self%vol_t! total volume
     ! 
-  end subroutine calc_res_pvessel
+  end subroutine calc_res_flupzrv
 
 
 
 
-end module pvessel_mod
+end module flupzrv_mod

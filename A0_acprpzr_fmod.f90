@@ -62,6 +62,8 @@ program acprpzr
   call construct_input()
   ! open output files
   call open_output_files()
+  ! echo the input file into the output directory
+  call echo_input()
   ! sleep for 3 seconds
   call SLEEP(3)
   ! convert neq type

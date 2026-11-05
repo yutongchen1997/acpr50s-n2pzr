@@ -12,10 +12,16 @@ module control_mod
 
   !======= Declarations =========
   implicit none
-  !== SHARED variables ==
+  !== output directory and path ==
+  ! directory
+  character(len=20) :: outdir
+  ! path
+  character(len=50) :: path4outdir
+
+  !== NAMELIST shared variables ==
   character(len=20) :: id, mat, typ, fcpid, sigid
   !character(len=20) :: mats(maxnlyr) = 'end'
-  !== UNIQUE variables ==
+  !== NAMELIST unique variables ==
   ! XTIME variables-------------------------------------------------01
   real(c_double) :: tstart= 0.0d00, tend = 1.d+02, dtotp = 1.d+01
   real(c_double) :: dtini = 1.d-08, dtmin= 1.d-08, dtmax = 1.d-01
@@ -30,7 +36,8 @@ module control_mod
   ! XPZRV variables-------------------------------------------------03
   character(len=20) :: id_l, id_g, mat_l, mat_g, shape
   real(c_double) :: dia_i, len_t, lvl0, htc_i0
-  real(c_double) ::tgas0, tliq0, pgas0
+  real(c_double) :: tgas0, tliq0, pgas0
+  real(c_double) :: z_tcs(maxtab) = endval
   ! XPIPE variables-------------------------------------------------04
   ! temporarily left blank
   ! XBNDC variables-------------------------------------------------05
@@ -59,7 +66,7 @@ module control_mod
   ! XPZRV namelist 03.----------------------------------------------
   NAMELIST /XPZRV/ id    , id_l  , id_g  , mat_l , mat_g , shape , &
                    dia_i , len_t , lvl0  , htc_i0, tgas0 , tliq0 , &
-                   pgas0
+                   pgas0 , z_tcs
   ! XPIPE namelist 04.----------------------------------------------
   ! XBNDC namelist 05.----------------------------------------------
   NAMELIST /XBNDC/ id    , mat   , typ   , pf0   , tf0   , sig_p , &
@@ -81,7 +88,7 @@ module control_mod
   integer(c_int)  :: numnml(nnmlst)
   !== Fluid information ==
   ! array storing fluid show-up counts
-  integer(c_int)   :: numfld(nfluids)
+  integer(c_int)  :: numfld(nfluids)
 
   contains
 ! ----------------------------------------------------------------------
@@ -95,9 +102,9 @@ module control_mod
     !== local variables ==
     character(len=6) :: nml_str
     real(c_double),allocatable :: inp_pzrv(:)
-    integer(c_int) :: i, j
+    integer(c_int) :: i, j, k
     ! the objects
-    type(pvessel), allocatable :: pvessel_arr(:)
+    type(flupzrv), allocatable :: flupzrv_arr(:)
     type(flubndc), allocatable :: flubndc_arr(:)
     type(flujunc), allocatable :: flujunc_arr(:)
     type(ctlsgnl), allocatable :: ctlsgnl_arr(:)
@@ -188,10 +195,11 @@ module control_mod
       call read_n2g_dat()
     ! /XPZRV/-----------------------------------------------------------
       if(numnml(idxpzrv)>=1) then
-        allocate(pvessel_arr(numnml(idxpzrv)))
+        allocate(flupzrv_arr(numnml(idxpzrv)))
         rewind(inpfu)
         write(0,'(1X,A15,I3)') '===/XPZRV/=== *', numnml(idxpzrv)
         do i = 1, numnml(idxpzrv)
+          z_tcs = endval
           read(inpfu, nml=xpzrv)
           allocate(inp_pzrv(7))
           inp_pzrv(1) = dia_i
@@ -201,7 +209,7 @@ module control_mod
           inp_pzrv(5) = tliq0
           inp_pzrv(6) = pgas0
           inp_pzrv(7) = htc_i0
-          call pvessel_arr(i)%init_pvessel(id, id_l, id_g, mat_l, mat_g, shape, inp_pzrv)
+          call flupzrv_arr(i)%init_flupzrv(id, id_l, id_g, mat_l, mat_g, shape, inp_pzrv)
           deallocate(inp_pzrv)
           ! check and count the fluid show-up times
           ! liquid phase
@@ -225,14 +233,29 @@ module control_mod
               print*, 'no match for gas = ', mat_g
               stop 'program stopped at construct_input'
           end select
+          ! check and set the TC information
+          do j = 1, maxtab
+            if(z_tcs(j)/=endval) then
+              continue
+            else
+              flupzrv_arr(i)%n_tcs = j-1
+              print*, 'the PZRV id = ',id,' contains ',j-1,' TC probes.' 
+              if(j>1) then
+                allocate(flupzrv_arr(i)%z_tcs(j-1))
+                flupzrv_arr(i)%z_tcs = z_tcs(1:j-1)
+              end if
+              exit
+            end if
+          end do
+          !
         end do
-        ! assign the pvessel_arr(:) to system_glo
-        call system_glo%fluid%init_pzrv(pvessel_arr)
+        ! assign the flupzrv_arr(:) to system_glo
+        call system_glo%fluid%init_pzrv(flupzrv_arr)
       else
         print*, 'no namelist /XPRZV/ detected for fluid solver'
         continue
       end if
-      deallocate(pvessel_arr)
+      deallocate(flupzrv_arr)
     ! /XBNDC/-----------------------------------------------------------
       if(numnml(idxbndc)>=1) then
         allocate(flubndc_arr(numnml(idxbndc)))
@@ -313,13 +336,12 @@ module control_mod
             ctlsgnl_arr(i)%val = val
           case('tdsig') ! time-dependent signal
             ! 'j' is the counter of actual input number of sgntab
-            j = 1
-            do while (.TRUE.)
+            do j = 1, maxtab
               if(tab(1,j)/=endval .and. tab(2,j)/=endval) then
-                j = j+1
+                continue
               else
                 if(tab(1,j)/=endval .or. tab(2,j)/=endval) then
-                  print*, 'Warning in signal id = ', id, ', time-dependent table'
+                  print*, 'warning in signal id = ', id, ', time-dependent table'
                   print*, 'the x-array and y-array sizes do not match'
                 end if
                 exit
@@ -451,10 +473,6 @@ module control_mod
     !======= Declarations =========
     implicit none
     !== local variables ==
-    ! output directory name
-    character(len=20) :: outdir
-    ! path for outputs
-    character(len=50) :: path4outdir
     ! file id string
     character(len=250):: fileid
     ! column id string
@@ -576,6 +594,19 @@ module control_mod
         write(otpfu+k,'(A18)',advance='no')colid
         write(otpfu+k,*)''
         k = k + 1
+        ! temperature probes
+        if(system_glo%fluid%pzrvs(i)%n_tcs>0) then
+          write(fileid,110) 'pzrv-tcprobes-',ADJUSTL(TRIM(system_glo%fluid%pzrvs(i)%id)),'.dat'
+          open(unit=otpfu+k, file=ADJUSTL(TRIM(path4outdir))//'/'//'fluid'//'/'//ADJUSTL(TRIM(fileid)), &
+          status='new', form='formatted')
+          colid = 'time'
+          write(otpfu+k,'(A18)',advance='no')colid
+          do j = 1, system_glo%fluid%pzrvs(i)%n_tcs
+            write(colid,120)'tc-[',j,']'
+            write(otpfu+k,'(A18)',advance='no')colid
+          end do
+        end if
+        k = k + 1
       end do
       ! fluid junction mass flowrates
       fileid = 'mdots.dat'
@@ -597,7 +628,7 @@ module control_mod
       if(istatus /= 0) then
         stop 'Failed to creat output directory for fluid, check your permession.'
       else
-        print*, 'Output directory created successfully for fluid.'
+        print*, 'Output directory created successfully for signal.'
       end if
       ! signal values
       fileid = 'signalvalues.dat'
@@ -615,15 +646,41 @@ module control_mod
 
 100 format(I4.4, A1, I2.2, A1, I2.2, A1, I2.2, A1, I2.2, A1, I2.2)
 110 format(A, A, A)
-120 format(A, A)
+120 format(A, I2.2, A)
   end subroutine open_output_files
 
 ! ----------------------------------------------------------------------
-! echo_input: a subroutine that write calculation results to 
-! output files every output time step
+! echo_input: a subroutine that makes a verbatim backup copy of the
+! input file into the output directory, confirming a correct read and
+! leaving a trace of the calculation behavior
 ! ----------------------------------------------------------------------
+  subroutine echo_input()
+    !======= Declarations =========
+    implicit none
+    !== local variables ==
+    ! byte size of the input file
+    integer(c_int) :: fsize
+    ! byte buffer storing the raw input file
+    character(len=:), allocatable :: fbuf
 
+    !======= Internals ============
+    ! get the byte size of the input file
+    inquire(file='input', size=fsize)
+    allocate(character(len=fsize) :: fbuf)
+    ! read the input file as a raw byte stream
+    open(unit=inpfu, file='input', status='old', access='stream', &
+         form='unformatted', action='read')
+    read(inpfu) fbuf
+    close(inpfu)
+    ! write the byte stream into the backup file
+    open(unit=bakfu, file=ADJUSTL(TRIM(path4outdir))//'/'//'input.bak', &
+         status='new', access='stream', form='unformatted', action='write')
+    write(bakfu) fbuf
+    deallocate(fbuf)
+    close(bakfu)
+    print*, 'input file echoed to '//ADJUSTL(TRIM(path4outdir))//'/'//'input.bak'
 
+  end subroutine echo_input
 
 ! ----------------------------------------------------------------------
 ! print_output_files: a subroutine that write calculation results to 
@@ -702,6 +759,24 @@ module control_mod
         write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
         write(otpfu+k,*)''
         k = k + 1
+        ! temperature probes
+        if(system_glo%fluid%pzrvs(i)%n_tcs>0) then
+          write(colstr,'(ES18.8e2)')time
+          write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+          do j = 1, system_glo%fluid%pzrvs(i)%n_tcs
+            if(system_glo%fluid%pzrvs(i)%z_tcs(j) <  &
+               system_glo%fluid%pzrvs(i)%z_l) then
+              write(colstr,'(ES18.8e2)')system_glo%fluid%pzrvs(i)%t_l
+              write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+            else
+              write(colstr,'(ES18.8e2)')system_glo%fluid%pzrvs(i)%t_g
+              write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+            end if
+          end do
+          write(otpfu+k,*)''
+          k = k + 1
+        end if
+        !
       end do
       ! fluid junction mass flowrates
       write(colstr,'(ES18.8e2)')time

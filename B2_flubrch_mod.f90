@@ -2,18 +2,18 @@
 ! Programmer(s): Yutong. Chen @ CGN::CNPRI::SRD::HX
 ! ------------------------------------------------------------------
 ! 
-! This module defines type :: brchvol (bracn volume that could be
-! linked by several junctions).
+! This module defines type :: flubrch (fluid bracn volume that 
+! could be linked by multible junctions).
 ! 
 ! ------------------------------------------------------------------
-module brchvol_mod
+module flubrch_mod
   !======= Inclusions =========
   use ctlsgnl_mod
 
   !======= Declarations =========
   implicit none
 
-  type :: brchvol
+  type :: flubrch
     !=== Member Variables ===
     ! required input parameters ------------------------------------
     ! junction id and type
@@ -31,19 +31,19 @@ module brchvol_mod
 
   contains
     !=== Member Procedures ===
-    procedure :: init_brchvol ! initialize junction parameters
-  end type brchvol
+    procedure :: init_flubrch ! initialize junction parameters
+  end type flubrch
 
 contains
 
-  subroutine init_brchvol(self, id)
+  subroutine init_flubrch(self, id)
     !======= Declarations =========
     implicit none
     !=== I/0 variables ===
-    class(brchvol), intent(inout) :: self
+    class(flubrch), intent(inout) :: self
     character(len=20), intent(in) :: id
     !======= Internals ============
 
-  end subroutine init_brchvol
+  end subroutine init_flubrch
 
-end module brchvol_mod
+end module flubrch_mod
