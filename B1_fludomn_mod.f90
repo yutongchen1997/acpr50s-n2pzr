@@ -120,7 +120,7 @@ contains
     do j = 1, self%njunc
       junc_f = .FALSE.
       junc_t = .FALSE.
-      ! if connected with fbcs
+      ! if connected with fluid boundary cell
       do i = 1, self%nbndc  
         if(self%juncs(j)%fid_f==self%bndcs(i)%id) then
           junc_f = .TRUE.
@@ -134,6 +134,10 @@ contains
           self%t_idx(j) = i
         end if
       end do
+      ! if connected with branch
+
+      ! under aktiv development ...
+
       ! if connected with pvessel
       if(.NOT.(junc_f)) then
         do i = 1, self%npzrv
@@ -200,10 +204,10 @@ contains
               stop 'program stopped at init_fludomn'
             else if(self%juncs(j)%fid_f==self%bndcs(i)%id) then
               select case(self%juncs(j)%typ)
-                case('junc_norm','junc_valv')
+                case('junc_norm','junc_orfz')
                   continue
                 case default
-                  print*, 'the "p_in" bc must serve as "from" of junc_norm or junc_valv'
+                  print*, 'the "p_in" bc must serve as "from" of junc_norm or junc_orfz'
                   stop 'program stopped at init_fludomn'
               end select
             end if
@@ -232,10 +236,10 @@ contains
               stop 'program stopped at init_fludomn'
             else if(self%juncs(j)%fid_t==self%bndcs(i)%id) then
               select case(self%juncs(j)%typ)
-                case('junc_norm','junc_valv')
+                case('junc_norm','junc_orfz')
                   continue
                 case default
-                  print*, 'the "p_out" bc must serve as "to" of junc_norm or junc_valv'
+                  print*, 'the "p_out" bc must serve as "to" of junc_norm or junc_orfz'
                   stop 'program stopped at init_fludomn'
               end select
             end if
@@ -274,18 +278,20 @@ contains
       select case(self%f_typ(j))
         case('bndc')    ! from 'bndc'
           continue
+        case('brch')
+          ! under aktiv development ...
         case('pzrv-g')  ! from 'pzrv-g'
           i = self%f_idx(j)
           mdot = self%juncs(j)%mdot
           self%pzrvs(i)%wg_ex = self%pzrvs(i)%wg_ex + mdot
-          hg = self%pzrvs(i)%h_g  ! [J]
+          hg = self%pzrvs(i)%h_g  ! [J]  ! need to be fixed 2026/11/07  mdot + or - ?
           mg = self%pzrvs(i)%m_g  ! [kg]
           self%pzrvs(i)%wghg_ex=self%pzrvs(i)%wghg_ex + mdot*hg/mg
         case('pzrv-l')  ! from 'pzrv-l'
           i = self%f_idx(j)
           mdot = self%juncs(j)%mdot
           self%pzrvs(i)%wl_su = self%pzrvs(i)%wl_su - mdot
-          hl = self%pzrvs(i)%h_l  ! [J]
+          hl = self%pzrvs(i)%h_l  ! [J]  ! need to be fixed 2026/11/07  mdot + or - ?
           ml = self%pzrvs(i)%m_l  ! [kg]
           self%pzrvs(i)%wlhl_su=self%pzrvs(i)%wlhl_su - mdot*hl/ml
         case default
@@ -295,30 +301,50 @@ contains
       select case(self%t_typ(j))
         case('bndc')    ! to 'bndc'
           continue
+        case('brch')
+          ! under aktiv development ...
         case('pzrv-g')  ! to 'pzrv-g'
           i = self%t_idx(j)
           k = self%f_idx(j)
           mdot = self%juncs(j)%mdot
           self%pzrvs(i)%wg_in = self%pzrvs(i)%wg_in + mdot
-          hg = self%bndcs(k)%s_hf  ! bndc enthalpy [J/kg]
+          hg = self%bndcs(k)%s_hf  ! bndc enthalpy [J/kg] ! need to be fixed 2026/11/07  mdot + or - ?
           self%pzrvs(i)%wghg_in=self%pzrvs(i)%wghg_in + mdot*hg
         case('pzrv-l')  ! to 'pzrv-l'
           i = self%t_idx(j)
           k = self%f_idx(j)
           mdot = self%juncs(j)%mdot
           self%pzrvs(i)%wl_su = self%pzrvs(i)%wl_su + mdot
-          hl = self%bndcs(k)%s_hf  ! bndc enthalpy [J/kg]
+          hl = self%bndcs(k)%s_hf  ! bndc enthalpy [J/kg] ! need to be fixed 2026/11/07  mdot + or - ?
           self%pzrvs(i)%wlhl_su=self%pzrvs(i)%wlhl_su + mdot*hl
         case default
           stop 'under development - 2026/11/01-0125'
       end select
     end do
+    ! calculate residuals of equations related to junctions
+    k = 1
+    do j = 1, self%njunc
+      if(self%juncs(j)%typ=='junc_flow') then
+        continue
+      else
+        select case (self%f_typ(j))
+          case('bndc')
+            
+          case('brch')
+
+          case('pzrv-l', 'pzrv-g')
+          
+          case default
+            stop '2026/11/07-0007'
+        end select
+        self%f_typ
+      end if
+    end do
     ! calculate residuals of equations related to pvessels
     do i = 1, self%npzrv
-      call self%pzrvs(i)%calc_res_flupzrv(res(9*i-8:9*i))
+      call self%pzrvs(i)%calc_res_flupzrv(res(neq_mdot+9*i-8:neq_mdot+9*i))
     end do
-    ! calculate residuals of equations related to junctions
-    ! now under active development...
+
   end subroutine calc_res_fludomn
 
 

@@ -38,6 +38,7 @@ program acprpzr
   ! integers
   integer, parameter :: myindextype = selected_int_kind(16)
   integer(kind=myindextype) :: neq = 0
+  integer(c_int) :: i, j, k
   ! SUNDIALS types
   type(N_Vector), pointer :: sunvec_y      ! sundials solution vector
   type(N_Vector), pointer :: sunvec_yp     ! sundials derivative vector
@@ -76,20 +77,26 @@ program acprpzr
   allocate(ypval(neq))
   allocate(avtol(neq))
   allocate(id_vals(neq))
+  ! set avtols
+  i = 1
   if(neq_mdot>0) then
-    ! under active development ... 2026/11/02-1453
+  ! junction mass flowrate [kg/s]
+    avtol(i:i+neq_mdot-1) = at(1)
   end if
+  i = i + neq_mdot
   if(neq_pzrv>0) then
-  ! fluid mass
-    avtol(1:2) = at(1)
-  ! fluid energy
-    avtol(3:4) = at(2)
-  ! fluid pressure
-    avtol(5)   = at(3)
-  ! fluid temperature
-    avtol(6:7) = at(4)
-  ! fluid volume
-    avtol(8:9) = at(5)
+    do j = 1, neq_pzrv
+      ! fluid mass        [kg]
+      avtol(i:i+9*j-8)      = at(1)
+      ! fluid energy      [J]
+      avtol(i+9*j-7:i+9*j-6)= at(2)
+      ! fluid pressure    [Pa]
+      avtol(i+9*j-5)        = at(3)
+      ! fluid temperature [K]
+      avtol(i+9*j-4:i+9*j-3)= at(4)
+      ! fluid volume      [m^3]
+      avtol(i+9*j-2:i+9*j-1)= at(5)
+    end do
   end if
   ! ---
   call system_glo%write_to_y_and_yp(yval, ypval)

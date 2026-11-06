@@ -22,8 +22,10 @@ module flujunc_mod
     character(len=20) :: fid_f, fid_t
     ! signal id (optional)
     character(len=20) :: sig
-    ! junction values: pump head [Pa], local loss coefficient [-]
-    real(c_double) :: phed, kfac
+    ! pump head [Pa]
+    real(c_double) :: pmph
+    ! orifice coefficient [-], orifice area [m^2]
+    real(c_double) :: kfac, aorz
     ! junction variable: mass flow rate [kg/s] 
     real(c_double) :: mdot 
     ! junction variable: time derivative of mass flow rate [kg/s^2]
@@ -36,24 +38,21 @@ module flujunc_mod
 
 contains
 
-  subroutine init_flujunc(self, id, juntp, fid_f, fid_t, sig)
+  subroutine init_flujunc(self, id, juntp, fid_f, fid_t)
     !======= Declarations =========
     implicit none
     !=== I/0 variables ===
     class(flujunc), intent(inout) :: self
     character(len=20), intent(in) :: id, juntp, fid_f, fid_t
-    character(len=20), optional, intent(in) :: sig
     !======= Internals ============
     self%id    = id
-    self%typ   = juntp  ! junction type: 'junc_flow', 'junc_valv', 'junc_pump', 'junc_norm'
+    self%typ   = juntp  ! junction type: 'junc_flow', 'junc_orfz', 'junc_pump', 'junc_norm'
     self%fid_f = fid_f
     self%fid_t = fid_t
-    if(present(sig)) then
-      self%sig = sig
-    end if
     !
-    self%phed = 0.d0
-    self%kfac  = 0.d0
+    self%pmph = 0.d0
+    self%kfac = 0.d0
+    self%aorz = 0.d0
     self%mdot  = 0.d0
   end subroutine init_flujunc
 

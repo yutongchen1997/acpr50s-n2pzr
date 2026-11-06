@@ -44,6 +44,7 @@ module control_mod
   character(len=20) :: sig_p, sig_t, pf0, tf0
   ! XJUNC variables-------------------------------------------------06
   character(len=20) :: fid_f, fid_t
+  real(c_double) :: kfac, aorz
   ! XCORE variables-------------------------------------------------07
   ! XFUEL variables-------------------------------------------------08
   ! XCLAD variables-------------------------------------------------09
@@ -72,7 +73,8 @@ module control_mod
   NAMELIST /XBNDC/ id    , mat   , typ   , pf0   , tf0   , sig_p , &
                    sig_t
   ! XJUNC namelist 06.----------------------------------------------
-  NAMELIST /XJUNC/ id    , typ   , fid_f , fid_t , sigid
+  NAMELIST /XJUNC/ id    , typ   , fid_f , fid_t , sigid , kfac  , &
+                   aorz  
   ! XCORE namelist 07.----------------------------------------------
   ! XFUEL namelist 08.----------------------------------------------
   ! XCLAD namelist 09.----------------------------------------------
@@ -289,12 +291,17 @@ module control_mod
         write(0,'(1X,A15,I3)') '===/XJUNC/=== *', numnml(idxjunc)
         do i = 1, numnml(idxjunc)
           read(inpfu, nml=xjunc)
+          call flujunc_arr(i)%init_flujunc(id, typ, fid_f, fid_t)
           ! read different types of junctions seperately
           select case (typ)
-            case('junc_flow', 'junc_valv', 'junc_pump')
-              call flujunc_arr(i)%init_flujunc(id, typ, fid_f, fid_t, sigid)
-            case('junc_norm')
+            case('junc_flow', 'junc_pump')
               call flujunc_arr(i)%init_flujunc(id, typ, fid_f, fid_t)
+              flujunc_arr(i)%sig = sigid
+            case('junc_orfz')
+              flujunc_arr(i)%kfac = kfac
+              flujunc_arr(i)%aorz = aorz
+            case('junc_norm')
+              continue
             case default
               print*, 'no match for junction type = ', typ
               stop 'program stopped at construct_input'
@@ -441,13 +448,11 @@ module control_mod
             select case (system_glo%fluid%juncs(i)%typ)
               case ('junc_flow')  ! mass-flow-rate specified
                 system_glo%fluid%juncs(i)%mdot = system_glo%signals(j)%val
-              case ('junc_valv')  ! k-factor specified 
-                system_glo%fluid%juncs(i)%kfac = system_glo%signals(j)%val
               case ('junc_pump')  ! pump-head specified
-                system_glo%fluid%juncs(i)%phed = system_glo%signals(j)%val
+                system_glo%fluid%juncs(i)%pmph = system_glo%signals(j)%val
               case default
                 if(system_glo%fluid%juncs(i)%typ=='jun-norm') then
-                  print*, 'warning, signal patched to normal junction would be neglected ...'
+                  print*, 'warning, signal patched to normal junction will be neglected ...'
                   print*, system_glo%fluid%juncs(i)%fid_f,' -> ',system_glo%fluid%juncs(i)%fid_t
                   continue
                 else
