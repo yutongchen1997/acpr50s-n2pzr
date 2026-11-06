@@ -31,10 +31,12 @@ module flubrch_mod
     ! mass, enthalpy, temperature, pressure
     real(c_double) :: m_f    ! fluid mass         - [kg]
     real(c_double) :: h_f    ! fluid enthalpy     - [J]
+    real(c_double) :: t_f    ! fluid temperature  - [K]
     real(c_double) :: p_f    ! fluid pressure     - [Pa]
     ! derivatives of dynamic variables -----------------------------
     real(c_double) :: dmfdt  ! time derivative of m  - [kg/s]
     real(c_double) :: dhfdt  ! time derivative of h  - [J/s]
+    real(c_double) :: dtfdt  ! time derivative of t  - [K/s]
     real(c_double) :: dpfdt  ! time derivative of pg - [Pa/s]
     ! internal variables -------------------------------------------
     real(c_double) :: q_htr  ! electric heater power - [W]
@@ -100,7 +102,7 @@ contains
     class(flubrch), intent(inout) :: self
     real(c_double), intent(out) :: res(:)
     !=== local variables ===
-    real(c_double) :: rf, s_hf, pfeos
+    real(c_double) :: rf, s_hf, tfeos, pfeos
     !======= Internals ============
     ! initialization 
     res = 0.d0
@@ -108,10 +110,13 @@ contains
     res(1) = self%dmfdt-self%wf_in+self%wfhf_ex
     ! energy equation
     res(2) = self%dhfdt-self%wfhf_in+self%wfhf_ex-self%q_htr
-    ! eos equation
+    ! eos equations
+    rf   = self%m_f/self%vol
+    s_hf = self%h_f/self%m_f
+    call tfeos_h2o(self%p_f, s_hf, tfeos)
+    res(3) = self%t_f-tfeos
     call pfeos_h2o(rf, s_hf, pfeos)
-    res(3) = self%p_f-pfeos
+    res(4) = self%p_f-pfeos
   end subroutine calc_res_flubrch
-
 
 end module flubrch_mod

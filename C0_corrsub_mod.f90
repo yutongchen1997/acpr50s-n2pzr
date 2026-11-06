@@ -194,10 +194,8 @@ contains
       end if
     end do
     pf = pf_1
-    
+
   end subroutine pfeos_h2o
-
-
 
 ! ----------------------------------------------------------------------
 ! tgeos_n2g: a subroutine to calculate n2 gas temperature with 
