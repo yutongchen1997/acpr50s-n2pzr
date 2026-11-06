@@ -195,7 +195,7 @@ contains
     s_hg = self%h_g/self%m_g
     s_hl = self%h_l/self%m_l
     call pgeos_n2g(eosopt, rg, s_hg, pgeos)
-    call tleos_h2o(self%p_g, s_hl, tleos)
+    call tfeos_h2o(self%p_g, s_hl, tleos)
     call tgeos_n2g(eosopt, self%p_g, s_hg, tgeos)
     res(5) = self%p_g-pgeos ! gas pressure
     res(6) = self%t_l-tleos ! liq temperature

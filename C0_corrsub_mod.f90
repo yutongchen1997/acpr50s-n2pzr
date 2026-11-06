@@ -103,23 +103,23 @@ contains
         ! initial guess of pg by ideal-gas model
         pg_1 = rg*hg*(gam_n2-1.d0)/gam_n2 
         ! then calcualte n2g density with NIST table
-        call interp2d(p_n2g,h_n2g,tpf_n2g(1,:,:),pg_1,hg,rg_1)    !column 1 - density
+        call rgeos_n2g(eosmod, pg_1, hg, rg_1)
         d_rg = rg-rg_1    ! difference between input and estimated density
         icount = 0
         do while(abs(d_rg)/rg>rtol)
           if(d_rg>0.d0) then
             ! the estimated pg is lower than true value
             pg_2 = pg_1+1.d0
-            call interp2d(p_n2g,h_n2g,tpf_n2g(1,:,:),pg_2,hg,rg_2)
+            call rgeos_n2g(eosmod, pg_2, hg, rg_2)
             k_rp = rg_2-rg_1           ! the slope of pg vs. rg curve
           else
             ! the estimated pg is higher than true value
             pg_2 = pg_1-1.d0
-            call interp2d(p_n2g,h_n2g,tpf_n2g(1,:,:),pg_2,hg,rg_2)
+            call rgeos_n2g(eosmod, pg_2, hg, rg_2)
             k_rp = rg_1-rg_2           ! the slope of pg vs. rg curve
           end if 
           pg_1 = pg_1 + d_rg/k_rp    ! correction of pg_1
-          call interp2d(p_n2g,h_n2g,tpf_n2g(1,:,:),pg_1,hg,rg_1)
+          call rgeos_n2g(eosmod, pg_1, hg, rg_1)
           d_rg = rg-rg_1
           ! max iterations limiter
           icount = icount+1
@@ -134,6 +134,80 @@ contains
         stop 'program stopped at pgeos_n2g'
     end select
   end subroutine pgeos_n2g
+
+! ----------------------------------------------------------------------
+! pfeos_h2o: a subroutine to calculate water fluid pressure with IAPWS
+! equation of state model 
+! input  - water density [kg/m^3], water enthalpy [J/kg]
+! output - water pressure [Pa]
+! ----------------------------------------------------------------------
+  subroutine pfeos_h2o(rf, hf, pf)
+    !======= Declarations =========
+    implicit none
+    !== input variables ==
+    ! water fluid density and enthalpy
+    real(c_double), intent(in) :: rf, hf
+    !== output variables ==
+    ! water fluid pressure
+    real(c_double), intent(out) :: pf
+    !== local variables ==
+    ! variables for Newton iterative algorithm
+    real(c_double) :: d_rf, rf_1, rf_2, pf_1, pf_2
+    real(c_double) :: k_rp    ! the slope
+    integer(c_int) :: icount
+
+    !======= Internals ============
+    if(rf>rc_h2o) then
+      ! liq or mix, cannot be gas
+      ! initial guess of pf_1 assuming saturated-liquid
+      call interp1d(sat_h2o(10,:),p_h2o(:),hf,pf_1)
+      ! then calculate h2o density with IAPWS: IF97 table
+      call rfeos_h2o(pf_1, hf, rf_1)
+      d_rf = rf-rf_1  ! absolute error
+      icount = 0
+      do while(abs(d_rf)/rf>rtol)
+        if(d_rf>0.d0) then
+          ! the estimated pf is lower than true value
+          pf_2 = pf_1 + 1.d0
+          call rfeos_h2o(pf_2, hf, rf_2)
+          k_rp = rf_2 - rf_1
+        else
+          ! the estimated pf is higher than true value
+          pf_2 = pf_1 - 1.d0
+          call rfeos_h2o(pf_2, hf, rf_2)
+          k_rp = rf_1 - rf_2
+        end if
+        pf_1 = pf_1 + d_rf/k_rp    ! correction of pf_1
+        call rfeos_h2o(pf_1, hf, rf_1)
+        d_rf = rf-rf_1
+        ! max iterations limiter
+        icount = icount+1
+        if(icount>50) then
+          print*, 'pfeos_h2o was not converged'
+          print*, 'water fluid phase state = liq .or. mix'
+          exit
+        end if
+      end do
+    else
+      ! gas or mix, cannot be liquid
+      ! under aktiv development ...
+
+
+    end if
+    
+    
+    
+    
+    
+
+    
+
+    
+
+
+  end subroutine pfeos_h2o
+
+
 
 ! ----------------------------------------------------------------------
 ! tgeos_n2g: a subroutine to calculate n2 gas temperature with 
@@ -165,23 +239,23 @@ contains
   end subroutine tgeos_n2g
 
 ! ----------------------------------------------------------------------
-! tleos_h2o: a subroutine to calculate temperature of h2o with 
+! tfeos_h2o: a subroutine to calculate temperature of h2o with 
 ! equation of state model 
 ! input  - gas pressure [Pa], water enthalpy [J/kg]
 ! output - water temperature [K]
 ! ----------------------------------------------------------------------
-  subroutine tleos_h2o(pg, hl, tl)
+  subroutine tfeos_h2o(pf, hf, tf)
     !======= Declarations =========
     implicit none
     !== input variables ==
     ! gas pressure, water enthalpy
-    real(c_double), intent(in) :: pg, hl
+    real(c_double), intent(in) :: pf, hf
     !== output variables ==
     ! water temperature 
-    real(c_double), intent(out) :: tl
+    real(c_double), intent(out) :: tf
     !======= Internals ============
-    call interp2d(p_h2o,h_h2o,tpf_h2o(6,:,:),pg,hl,tl)   !column 6 - temperature
-  end subroutine tleos_h2o
+    call interp2d(p_h2o,h_h2o,tpf_h2o(6,:,:),pf,hf,tf)   !column 6 - temperature
+  end subroutine tfeos_h2o
 
 ! ----------------------------------------------------------------------
 ! rgeos_n2g: a subroutine to calculate density of n2g with 

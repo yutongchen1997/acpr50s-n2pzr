@@ -18,6 +18,8 @@ module flubrch_mod
     ! required input parameters ------------------------------------
     ! junction id, fluid material type
     character(len=20) :: id, mat
+    ! signal id string of electric heater power
+    character(len=20) :: sig_ht
     ! branch fluid volume
     real(c_double) :: vol
     ! boundary i/o effects -----------------------------------------
@@ -29,12 +31,10 @@ module flubrch_mod
     ! mass, enthalpy, temperature, pressure
     real(c_double) :: m_f    ! fluid mass         - [kg]
     real(c_double) :: h_f    ! fluid enthalpy     - [J]
-    real(c_double) :: t_f    ! fluid temperature  - [K]
     real(c_double) :: p_f    ! fluid pressure     - [Pa]
     ! derivatives of dynamic variables -----------------------------
     real(c_double) :: dmfdt  ! time derivative of m  - [kg/s]
     real(c_double) :: dhfdt  ! time derivative of h  - [J/s]
-    real(c_double) :: dtfdt  ! time derivative of t  - [K/s]
     real(c_double) :: dpfdt  ! time derivative of pg - [Pa/s]
     ! internal variables -------------------------------------------
     real(c_double) :: q_htr  ! electric heater power - [W]
@@ -46,12 +46,12 @@ module flubrch_mod
 
 contains
 
-  subroutine init_flubrch(self, id, mat, inp)
+  subroutine init_flubrch(self, id, mat, sig_ht, inp)
     !======= Declarations =========
     implicit none
     !=== I/0 variables ===
     class(flubrch), intent(inout) :: self
-    character(len=20), intent(in) :: id, mat
+    character(len=20), intent(in) :: id, mat, sig_ht
     ! inp array: 1-vol0, 2-tf0, 3-pf0
     real(c_double) :: inp(:)
     !=== local variables ===
@@ -59,7 +59,8 @@ contains
     !======= Internals ============
     ! assign the input strings
     self%id = id
-    self%mat= mat
+    self%mat= mat ! 2 flu types: 'n2g', 'h2o'
+    self%sig_ht = sig_ht
     ! assign the input parameters
     self%vol = inp(1)
     self%t_f = inp(2)
@@ -85,7 +86,32 @@ contains
         stop 'program stopped at init_flubrch'
     end select
     ! initialize fluid mass and enthalpy
+    self%m_f = rf0*self%vol
+    self%h_f = self%m_f*s_hf0
+    !
+    self%q_htr = 0.d0
 
   end subroutine init_flubrch
+
+  subroutine calc_res_flubrch(self, res)
+    !======= Declarations =========
+    implicit none
+    !=== I/0 variables ===
+    class(flubrch), intent(inout) :: self
+    real(c_double), intent(out) :: res(:)
+    !=== local variables ===
+    real(c_double) :: rf, s_hf, pfeos
+    !======= Internals ============
+    ! initialization 
+    res = 0.d0
+    ! mass equation
+    res(1) = self%dmfdt-self%wf_in+self%wfhf_ex
+    ! energy equation
+    res(2) = self%dhfdt-self%wfhf_in+self%wfhf_ex-self%q_htr
+    ! eos equation
+    call pfeos_h2o(rf, s_hf, pfeos)
+    res(3) = self%p_f-pfeos
+  end subroutine calc_res_flubrch
+
 
 end module flubrch_mod

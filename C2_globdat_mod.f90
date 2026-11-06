@@ -15,10 +15,11 @@ module globdat_mod
   !== Constant Parameters ==
   ! scientific constants
   real(c_double), parameter :: pi     = 3.141592653589793d0
-  real(c_double), parameter :: grav   = 9.8d0              ! gravity acceleration
-  real(c_double), parameter :: r_u    = 8.31446261815324d0 ! universal gas constant
-  real(c_double), parameter :: gam_n2 = 1.4d0              ! gama coefficient of n2
-  real(c_double), parameter :: mol_n2 = 28.0134d-3         ! molecular weight of n2
+  real(c_double), parameter :: grav   = 9.8d0                 ! gravity acceleration
+  real(c_double), parameter :: r_u    = 8.31446261815324d0    ! universal gas constant
+  real(c_double), parameter :: gam_n2 = 1.4d0                 ! gama coefficient of n2
+  real(c_double), parameter :: mol_n2 = 28.0134d-3            ! molecular weight of n2
+  real(c_double), parameter :: rc_h2o = 322.00000000000006d0  ! critical density of h2o
   real(c_double), parameter :: small  = 1.0d-10
   real(c_double), parameter :: minor  = 1.0d-20
   real(c_double), parameter :: large  = 1.0d+10
