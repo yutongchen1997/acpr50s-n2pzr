@@ -156,55 +156,45 @@ contains
     real(c_double) :: k_rp    ! the slope
     integer(c_int) :: icount
 
-    !======= Internals ============
+    !======= ,:Internals ============
     if(rf>rc_h2o) then
       ! liq or mix, cannot be gas
       ! initial guess of pf_1 assuming saturated-liquid
       call interp1d(sat_h2o(10,:),p_h2o(:),hf,pf_1)
-      ! then calculate h2o density with IAPWS: IF97 table
-      call rfeos_h2o(pf_1, hf, rf_1)
-      d_rf = rf-rf_1  ! absolute error
-      icount = 0
-      do while(abs(d_rf)/rf>rtol)
-        if(d_rf>0.d0) then
-          ! the estimated pf is lower than true value
-          pf_2 = pf_1 + 1.d0
-          call rfeos_h2o(pf_2, hf, rf_2)
-          k_rp = rf_2 - rf_1
-        else
-          ! the estimated pf is higher than true value
-          pf_2 = pf_1 - 1.d0
-          call rfeos_h2o(pf_2, hf, rf_2)
-          k_rp = rf_1 - rf_2
-        end if
-        pf_1 = pf_1 + d_rf/k_rp    ! correction of pf_1
-        call rfeos_h2o(pf_1, hf, rf_1)
-        d_rf = rf-rf_1
-        ! max iterations limiter
-        icount = icount+1
-        if(icount>50) then
-          print*, 'pfeos_h2o was not converged'
-          print*, 'water fluid phase state = liq .or. mix'
-          exit
-        end if
-      end do
     else
       ! gas or mix, cannot be liquid
-      ! under aktiv development ...
-
-
+      ! initial guess of pf_1 assuming saturated-steam
+      call interp1d(sat_h2o(11,:),p_h2o(:),hf,pf_1)
     end if
+    ! then calculate h2o density with IAPWS: IF97 table
+    call rfeos_h2o(pf_1, hf, rf_1)
+    d_rf = rf-rf_1  ! absolute error
+    icount = 0
+    do while(abs(d_rf)/rf>rtol)
+      if(d_rf>0.d0) then
+        ! the estimated density is lower than true value
+        pf_2 = pf_1 + 1.d0
+        call rfeos_h2o(pf_2, hf, rf_2)
+        k_rp = rf_2 - rf_1
+      else
+        ! the estimated density is higher than true value
+        pf_2 = pf_1 - 1.d0
+        call rfeos_h2o(pf_2, hf, rf_2)
+        k_rp = rf_1 - rf_2
+      end if
+      pf_1 = pf_1 + d_rf/k_rp    ! correction of pf_1
+      call rfeos_h2o(pf_1, hf, rf_1)
+      d_rf = rf-rf_1
+      ! max iterations limiter
+      icount = icount+1
+      if(icount>50) then
+        print*, 'pfeos_h2o was not converged'
+        print*, 'water fluid phase state = liq .or. mix'
+        exit
+      end if
+    end do
+    pf = pf_1
     
-    
-    
-    
-    
-
-    
-
-    
-
-
   end subroutine pfeos_h2o
 
 
