@@ -212,23 +212,23 @@ contains
   end subroutine rgeos_n2g
 
 ! ----------------------------------------------------------------------
-! rleos_h2o: a subroutine to calculate density of h2o with 
+! rfeos_h2o: a subroutine to calculate density of h2o with 
 ! equation of state model 
-! input  - gas pressure [Pa], water enthalpy [J/kg]
+! input  - water pressure [Pa], water enthalpy [J/kg]
 ! output - water density [kg/m^3]
 ! ----------------------------------------------------------------------
-  subroutine rleos_h2o(pg, hl, rl)
+  subroutine rfeos_h2o(pf, hf, rf)
     !======= Declarations =========
     implicit none
     !== input variables ==
     ! gas pressure, water enthalpy
-    real(c_double), intent(in) :: pg, hl
+    real(c_double), intent(in) :: pf, hf
     !== output variables ==
     ! water density 
-    real(c_double), intent(out) :: rl
+    real(c_double), intent(out) :: rf
     !======= Internals ============
-    call interp2d(p_h2o,h_h2o,tpf_h2o(1,:,:),pg,hl,rl)   !column 1 - density
-  end subroutine rleos_h2o
+    call interp2d(p_h2o,h_h2o,tpf_h2o(1,:,:),pf,hf,rf)   !column 1 - density
+  end subroutine rfeos_h2o
 
 ! ----------------------------------------------------------------------
 ! hgeos_n2g: a subroutine to calculate enthalpy of n2 gas based on 
@@ -292,56 +292,56 @@ contains
   end subroutine hgeos_n2g
 
 ! ----------------------------------------------------------------------
-! hleos_h2o: a subroutine to calculate enthalpy of h2o liquid based on 
+! hfeos_h2o: a subroutine to calculate enthalpy of h2o liquid based on 
 ! equation of state model 
-! input  - gas pressure [Pa], h2o temperature [K]
+! input  - h2o pressure [Pa], h2o temperature [K]
 ! output - h2o enthalpy [J/kg]
 ! ----------------------------------------------------------------------
-  subroutine hleos_h2o(pg, tl, hl)
+  subroutine hfeos_h2o(pf, tf, hf)
     !======= Declarations =========
     implicit none
     !== input variables ==
     ! h2o pressure, h2o temperature
-    real(c_double), intent(in) :: pg, tl
+    real(c_double), intent(in) :: pf, tf
     !== output variables ==
     ! h2o enthalpy
-    real(c_double), intent(out) :: hl
+    real(c_double), intent(out) :: hf
     !== local variables ==
     ! variables for Newton iterative algorithm
-    real(c_double) :: d_tl, tl_1, tl_2, hl_1, hl_2
+    real(c_double) :: d_tf, tf_1, tf_2, hf_1, hf_2
     real(c_double) :: k_th    ! the slope
     integer(c_int) :: icount
     !======= Internals ============
     ! initial guess of hl assuming saturation state - hlsat(tl)
-    call interp1d(sat_h2o(9,:),sat_h2o(10,:),tl,hl_1)
+    call interp1d(sat_h2o(9,:),sat_h2o(10,:),tf,hf_1)
     ! then calculate h2o temperature with NIST table
-    call interp2d(p_h2o,h_h2o,tpf_h2o(6,:,:),pg,hl_1,tl_1)
-    d_tl = tl - tl_1    ! difference between input and estimated tl
+    call interp2d(p_h2o,h_h2o,tpf_h2o(6,:,:),pf,hf_1,tf_1)
+    d_tf = tf - tf_1    ! difference between input and estimated tl
     icount = 0
-    do while(abs(d_tl)/tl>1.0d-6)
-      if(d_tl>0.d0) then
+    do while(abs(d_tf)/tf>rtol)
+      if(d_tf>0.d0) then
         ! the estimated hl is lower than true value
-        hl_2 = hl_1+1.d0
-        call interp2d(p_h2o,h_h2o,tpf_h2o(6,:,:),pg,hl_2,tl_2)
-        k_th = tl_2-tl_1           ! the slope
+        hf_2 = hf_1+1.d0
+        call interp2d(p_h2o,h_h2o,tpf_h2o(6,:,:),pf,hf_2,tf_2)
+        k_th = tf_2-tf_1           ! the slope
       else
-        ! the estimated hl is higher than true value
-        hl_2 = hl_1-1.d0
-        call interp2d(p_h2o,h_h2o,tpf_h2o(6,:,:),pg,hl_2,tl_2)
-        k_th = tl_1-tl_2           ! the slope
+        ! the estimated hf is higher than true value
+        hf_2 = hf_1-1.d0
+        call interp2d(p_h2o,h_h2o,tpf_h2o(6,:,:),pf,hf_2,tf_2)
+        k_th = tf_1-tf_2           ! the slope
       end if
-      hl_1 = hl_1 + d_tl/k_th    ! correction of hl_1
-      call interp2d(p_h2o,h_h2o,tpf_h2o(6,:,:),pg,hl_1,tl_1)
-      d_tl = tl - tl_1
+      hf_1 = hf_1 + d_tf/k_th    ! correction of hl_1
+      call interp2d(p_h2o,h_h2o,tpf_h2o(6,:,:),pf,hf_1,tf_1)
+      d_tf = tf - tf_1
       ! max interations limiter
       icount = icount+1
       if(icount>50) then
-        print*, 'hleos_h2o was not converged!'
+        print*, 'hfeos_h2o was not converged!'
         exit
       end if 
     end do 
-    hl = hl_1
-  end subroutine hleos_h2o
+    hf = hf_1
+  end subroutine hfeos_h2o
 
 
   

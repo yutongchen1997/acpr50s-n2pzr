@@ -97,10 +97,10 @@ contains
     self%v_g = self%vol_t-self%v_l
     ! calcualte initial liquid and gas specific enthalpy [J/kg]
     call hgeos_n2g(eosopt, self%p_g, self%t_g, s_hg0)
-    call hleos_h2o(self%p_g, self%t_l, s_hl0)        
+    call hfeos_h2o(self%p_g, self%t_l, s_hl0)        
     ! calculate initial liquid and gas density [kg/m^3]
     call rgeos_n2g(eosopt, self%p_g, s_hg0, rg0)
-    call rleos_h2o(self%p_g, s_hl0, rl0)
+    call rfeos_h2o(self%p_g, s_hl0, rl0)
     ! calculate initial liquid and gas mass [kg]
     self%m_l = rl0*self%v_l
     self%m_g = rg0*self%v_g
@@ -201,7 +201,7 @@ contains
     res(6) = self%t_l-tleos ! liq temperature
     res(7) = self%t_g-tgeos ! gas temperature
     ! volume equations
-    call rleos_h2o(self%p_g, s_hl, rleos)
+    call rfeos_h2o(self%p_g, s_hl, rleos)
     res(8) = self%v_l-self%m_l/rleos ! liq volume
     res(9) = self%v_l+self%v_g-self%vol_t! total volume
     ! 

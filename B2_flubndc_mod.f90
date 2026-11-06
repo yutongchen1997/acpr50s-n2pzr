@@ -71,7 +71,7 @@ contains
       case('n2g')
         call hgeos_n2g(eosopt, self%pf, self%tf, self%s_hf)
       case('h2o')
-        call hleos_h2o(self%pf, self%tf, self%s_hf)
+        call hfeos_h2o(self%pf, self%tf, self%s_hf)
       case default
         print*, 'no match for fluid material = ', self%mat
         stop 'program stopped at updt_flubndc'
