@@ -56,6 +56,16 @@ contains
     k = 1
     ! fluid solver
     if(solve_fluid) then
+      ! external junctions----------------------------------------------
+      do i = 1, self%fluid%njunc
+        ! mdots to be solved by sundials
+        if(self%fluid%juncs(i)%typ=='junc_flow') then
+          continue
+        else
+          yval(k) = self%fluid%juncs(i)%mdot
+          k = k + 1
+        end if
+      end do
       ! pvessel data----------------------------------------------------
       do i = 1, self%fluid%npzrv
         ! fluid masses to be solved by sundials
@@ -82,15 +92,20 @@ contains
         yval(k) = self%fluid%pzrvs(i)%v_g  ! 09
         k = k + 1
       end do
-      ! external junctions----------------------------------------------
-      do i = 1, self%fluid%njunc
-        ! mdots to be solved by sundials
-        if(self%fluid%juncs(i)%typ=='junc_flow') then
-          continue
-        else
-          yval(k) = self%fluid%juncs(i)%mdot
-          k = k + 1
-        end if
+      ! branch data-----------------------------------------------------
+      do i = 1, self%fluid%nbrch
+        ! fluid mass to be solved by sundials
+        yval(k) = self%fluid%brchs(i)%m_f  ! 01
+        k = k + 1
+        ! fluid enthalpy to be solved by sundials
+        yval(k) = self%fluid%brchs(i)%h_f  ! 02
+        k = k + 1
+        ! fluid temperature to be solved by sundials
+        yval(k) = self%fluid%brchs(i)%t_f  ! 03
+        k = k + 1
+        ! fluid pressure to be solved by sundials
+        yval(k) = self%fluid%brchs(i)%p_f  ! 04
+        k = k + 1
       end do
       ! ypvals----------------------------------------------------------
       ! initialize vector of time derivatives to zero
@@ -116,6 +131,17 @@ contains
     k = 1
     ! fluid solver
     if(solve_fluid) then
+      ! external fluid junctions----------------------------------------
+      do i = 1, self%fluid%njunc
+        ! mdots to be solved by sundials
+        if(self%fluid%juncs(i)%typ=='junc_flow') then
+          continue
+        else
+          self%fluid%juncs(i)%mdot   = yval(k)
+          self%fluid%juncs(i)%dmdotdt= ypval(k)
+          k = k + 1
+        end if
+      end do
       ! pvessel data----------------------------------------------------
       do i = 1, self%fluid%npzrv
         ! fluid masses to be solved by sundials
@@ -152,17 +178,41 @@ contains
         k = k + 1
         ! update liquid level
         call self%fluid%pzrvs(i)%get_liq_lvl()
+        ! update liquid and gas density
+        self%fluid%pzrvs(i)%r_l = self%fluid%pzrvs(i)%m_l / & 
+                                  self%fluid%pzrvs(i)%v_l
+        self%fluid%pzrvs(i)%r_g = self%fluid%pzrvs(i)%m_g / &
+                                  self%fluid%pzrvs(i)%v_g
+        ! update liquid and gas specific enthalpy
+        self%fluid%pzrvs(i)%s_hl= self%fluid%pzrvs(i)%h_l / &
+                                  self%fluid%pzrvs(i)%m_l
+        self%fluid%pzrvs(i)%s_hg= self%fluid%pzrvs(i)%h_g / &
+                                  self%fluid%pzrvs(i)%m_g
       end do
-      ! external fluid junctions----------------------------------------
-      do i = 1, self%fluid%njunc
-        ! mdots to be solved by sundials
-        if(self%fluid%juncs(i)%typ=='junc_flow') then
-          continue
-        else
-          self%fluid%juncs(i)%mdot   = yval(k)
-          self%fluid%juncs(i)%dmdotdt= ypval(k)
-          k = k + 1
-        end if
+      ! branch data-----------------------------------------------------
+      do i = 1, self%fluid%nbrch
+        ! fluid mass to be solved by sundials
+        self%fluid%brchs(i)%m_f  = yval(k)
+        self%fluid%brchs(i)%dmfdt= ypval(k)
+        k = k + 1
+        ! fluid enthalpy to be solved by sundials
+        self%fluid%brchs(i)%h_f  = yval(k)
+        self%fluid%brchs(i)%dhfdt= ypval(k)
+        k = k + 1
+        ! fluid temperature to be solved by sundials
+        self%fluid%brchs(i)%t_f  = yval(k)
+        self%fluid%brchs(i)%dtfdt= ypval(k)
+        k = k + 1
+        ! fluid pressure to be solved by sundials
+        self%fluid%brchs(i)%p_f  = yval(k)
+        self%fluid%brchs(i)%dpfdt= ypval(k)
+        k = k + 1
+        ! update fluid density
+        self%fluid%brchs(i)%r_f = self%fluid%brchs(i)%m_f / &
+                                  self%fluid%brchs(i)%vol
+        ! update fluid specific enthalpy
+        self%fluid%brchs(i)%s_hf= self%fluid%brchs(i)%h_f / &
+                                  self%fluid%brchs(i)%m_f
       end do
     end if
 

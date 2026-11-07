@@ -66,7 +66,7 @@ contains
     implicit none
     !=== I/0 variables ===
     class(fludomn), intent(inout) :: self
-    class(flubndc), intent(in)    :: brch_arr(:)
+    class(flubrch), intent(in)    :: brch_arr(:)
     !=== local variables ===
 
     !======= Internals ============
@@ -282,6 +282,7 @@ contains
     real(c_double), intent(out) :: res(:)
     !=== local variables ===
     real(c_double) :: mdot
+    real(c_double) :: p_1, p_2, r_f
     real(c_double) :: s_hf
     integer(c_int) :: i, j, k
     !======= Internals ============
@@ -292,10 +293,12 @@ contains
       self%pzrvs(i)%wl_ex  = 0.d0
       self%pzrvs(i)%wg_in  = 0.d0
       self%pzrvs(i)%wg_ex  = 0.d0
-      self%pzrvs(i)%wlhl_su= 0.d0
+      self%pzrvs(i)%wlhl_in= 0.d0
+      self%pzrvs(i)%wlhl_ex= 0.d0
       self%pzrvs(i)%wghg_in= 0.d0
       self%pzrvs(i)%wghg_ex= 0.d0
     end do
+    k = 1
     do j = 1, self%njunc
       mdot = self%juncs(j)%mdot
       if(mdot>0.d0) then
@@ -303,18 +306,22 @@ contains
         i = self%f_idx(j)
         select case(self%f_typ(j))
           case('bndc')
+            r_f  = self%bndcs(i)%r_f
             s_hf = self%bndcs(i)%s_hf
           case('brch')
+            r_f = self%brchs(i)%r_f
+            s_hf= self%brchs(i)%s_hf
             self%brchs(i)%wf_ex = self%brchs(i)%wf_ex + mdot
-            s_hf = self%brchs(i)%h_f/self%brchs(i)%m_f
             self%brchs(i)%wfhf_ex=self%brchs(i)%wfhf_ex + mdot*s_hf
           case('pzrv-g')
+            r_f = self%pzrvs(i)%r_g
+            s_hf= self%pzrvs(i)%s_hg
             self%pzrvs(i)%wg_ex = self%pzrvs(i)%wg_ex + mdot
-            s_hf = self%pzrvs(i)%h_g/self%pzrvs(i)%m_g
             self%pzrvs(i)%wghg_ex=self%pzrvs(i)%wghg_ex + mdot*s_hf 
           case('pzrv-l')
+            r_f = self%pzrvs(i)%r_l
+            s_hf= self%pzrvs(i)%s_hl
             self%pzrvs(i)%wl_ex = self%pzrvs(i)%wl_ex + mdot
-            s_hf = self%pzrvs(i)%h_l/self%pzrvs(i)%m_l
             self%pzrvs(i)%wlhl_ex=self%pzrvs(i)%wlhl_ex + mdot*s_hf
           case default
             stop 'under development - 2026/11/07-0947'
@@ -342,18 +349,22 @@ contains
         i = self%t_idx(j)
         select case(self%t_typ(j))
           case('bndc')
-            s_hf = self%bndcs(i)%s_hf
+            r_f = self%bndcs(i)%r_f
+            s_hf= self%bndcs(i)%s_hf
           case('brch')
+            r_f = self%brchs(i)%r_f
+            s_hf= self%brchs(i)%s_hf
             self%brchs(i)%wf_in = self%brchs(i)%wf_in + mdot
-            s_hf = self%brchs(i)%h_f/self%brchs(i)%m_f
             self%brchs(i)%wfhf_in=self%brchs(i)%wfhf_in + mdot*s_hf
           case('pzrv-g')
+            r_f = self%pzrvs(i)%r_g
+            s_hf= self%pzrvs(i)%s_hg
             self%pzrvs(i)%wg_in = self%pzrvs(i)%wg_in + mdot
-            s_hf = self%pzrvs(i)%h_g/self%pzrvs(i)%m_g
             self%pzrvs(i)%wghg_in=self%pzrvs(i)%wghg_in + mdot*s_hf
           case('pzrv-l')
+            r_f = self%pzrvs(i)%r_l
+            s_hf= self%pzrvs(i)%s_hl
             self%pzrvs(i)%wl_in = self%pzrvs(i)%wl_in - mdot
-            s_hf = self%pzrvs(i)%h_l/self%pzrvs(i)%m_l
             self%pzrvs(i)%wlhl_in=self%pzrvs(i)%wlhl_in + mdot*s_hf
           case default
             stop 'under development - 2026/11/07-1249'
@@ -365,7 +376,7 @@ contains
             continue
           case('brch')
             self%brchs(i)%wf_ex = self%brchs(i)%wf_ex + mdot
-            self%brchs(i)%wfhf_ex=self%bndcs(i)%wfhf_ex + mdot*s_hf
+            self%brchs(i)%wfhf_ex=self%brchs(i)%wfhf_ex + mdot*s_hf
           case('pzrv-g')
             self%pzrvs(i)%wg_ex = self%pzrvs(i)%wg_ex + mdot
             self%pzrvs(i)%wghg_ex=self%pzrvs(i)%wghg_ex + mdot*s_hf
@@ -376,29 +387,59 @@ contains
             stop 'under development - 2026/11/07-1620'
         end select
       end if
-    end do
-    ! calculate residuals of equations related to junctions
-    k = 1
-    do j = 1, self%njunc
-      if(self%juncs(j)%typ=='junc_flow') then
-        continue
-      else
-        select case (self%f_typ(j))
-          case('bndc')
-            
-          case('brch')
+      ! calculate residuals of equations related to junctions
+      select case(self%juncs(j)%typ)
+        case('junc_flow')
+          continue
+        case('junc_pump')
+          stop 'under development - 2026/11/07-1632'
+        case('junc_norm')
+          stop 'under development - 2026/11/07-1632'
+        case('junc_orfz')
+          ! get the pressure of 'from' component
+          i = self%f_idx(j)
+          select case(self%f_typ(j))
+            case('bndc')
+              p_1 = self%bndcs(i)%p_f
+            case('brch')
+              p_1 = self%brchs(i)%p_f
+            case('pzrv-g', 'pzrv-l')
+              p_1 = self%pzrvs(i)%p_g
+            case default
+              stop 'under development - 2026/11/07-1653'
+          end select
+          ! get the pressure of 'to' component
+          i = self%t_idx(j)
+          select case(self%t_typ(j))
+            case('bndc')
+              p_2 = self%bndcs(i)%p_f
+            case('brch')
+              p_2 = self%brchs(i)%p_f
+            case('pzrv-g', 'pzrv-l')
+              p_2 = self%pzrvs(i)%p_g
+            case default
+              stop 'under development - 2026/11/07-1707'
+          end select
+          ! calculate the residuals
 
-          case('pzrv-l', 'pzrv-g')
-          
-          case default
-            stop '2026/11/07-0007'
-        end select
-        self%f_typ
-      end if
+
+
+
+
+          k = k + 1
+        case default
+          stop 'under development - 2026/11/07-1628'
+      end select
+
     end do
+    !
     ! calculate residuals of equations related to pvessels
     do i = 1, self%npzrv
       call self%pzrvs(i)%calc_res_flupzrv(res(neq_mdot+9*i-8:neq_mdot+9*i))
+    end do
+    ! caluclate residuals of equations related to branches
+    do i = 1, self%nbrch
+      ! ...
     end do
 
   end subroutine calc_res_fludomn

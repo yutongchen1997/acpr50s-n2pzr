@@ -39,7 +39,9 @@ module flubrch_mod
     real(c_double) :: dtfdt  ! time derivative of t  - [K/s]
     real(c_double) :: dpfdt  ! time derivative of pg - [Pa/s]
     ! internal variables -------------------------------------------
-    real(c_double) :: q_htr  ! electric heater power - [W]
+    real(c_double) :: q_htr  ! electric heater power   - [W]
+    real(c_double) :: r_f    ! fluid density           - [kg/m^3]
+    real(c_double) :: s_hf   ! fluid specific enthaply - [J/kg]
 
   contains
     !=== Member Procedures ===
@@ -87,9 +89,11 @@ contains
         print*, 'no match for fluid material = ', mat
         stop 'program stopped at init_flubrch'
     end select
-    ! initialize fluid mass and enthalpy
-    self%m_f = rf0*self%vol
-    self%h_f = self%m_f*s_hf0
+    ! initialize fluid density, mass and enthalpy
+    self%r_f = rf0
+    self%s_hf= s_hf0
+    self%m_f = self%r_f*self%vol
+    self%h_f = self%m_f*self%s_hf
     !
     self%q_htr = 0.d0
 

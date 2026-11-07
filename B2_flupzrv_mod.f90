@@ -39,7 +39,6 @@ module flupzrv_mod
     real(c_double) :: t_g, t_l  ! gas, liq temperature  - [K]
     real(c_double) :: v_g, v_l  ! gas, liq volume       - [m^3]
     real(c_double) :: p_g       ! gas pressure          - [Pa]
-    real(c_double) :: z_l       ! internal liquid level - [m]
     ! derivatives of dynamic variables
     real(c_double) :: dmldt, dmgdt   ! time derivative of m  - [kg/s]
     real(c_double) :: dhldt, dhgdt   ! time derivative of h  - [J/s]
@@ -47,8 +46,11 @@ module flupzrv_mod
     real(c_double) :: dvldt, dvgdt   ! time derivative of v  - [m^3/s]
     real(c_double) :: dpdt           ! time derivative of pg - [Pa/s]
     ! internal variables -------------------------------------------
-    real(c_double) :: htc_i   ! liq - gas interface htc - [W/m^2/K]  
-    real(c_double) :: qlg_i   ! liq - gas heating rate  - [W]
+    real(c_double) :: htc_i      ! liq - gas interface htc    - [W/m^2/K]  
+    real(c_double) :: qlg_i      ! liq - gas heating rate     - [W]
+    real(c_double) :: z_l        ! internal liquid level      - [m]
+    real(c_double) :: r_g, r_l   ! gas, liq density           - [kg/m^3]
+    real(c_double) :: s_hg, s_hl ! gas, liq specific enthalpy - [J/kg]
     ! temperature probe variables ----------------------------------
     integer(c_int) :: n_tcs     ! number of TCs
     real(c_double), allocatable :: z_tcs(:)  ! axial location of TCs
@@ -98,15 +100,19 @@ contains
     ! calcualte initial liquid and gas specific enthalpy [J/kg]
     call hgeos_n2g(eosopt, self%p_g, self%t_g, s_hg0)
     call hfeos_h2o(self%p_g, self%t_l, s_hl0)        
+    self%s_hg= s_hg0
+    self%s_hl= s_hl0 
     ! calculate initial liquid and gas density [kg/m^3]
     call rgeos_n2g(eosopt, self%p_g, s_hg0, rg0)
     call rfeos_h2o(self%p_g, s_hl0, rl0)
+    self%r_g = rg0
+    self%r_l = rl0
     ! calculate initial liquid and gas mass [kg]
-    self%m_l = rl0*self%v_l
-    self%m_g = rg0*self%v_g
+    self%m_g = self%r_g*self%v_g
+    self%m_l = self%r_l*self%v_l
     ! calculate initial liquid and gas enthalpy [J]
-    self%h_l = self%m_l*s_hl0
-    self%h_g = self%m_g*s_hg0
+    self%h_l = self%s_hl*self%m_l
+    self%h_g = self%s_hg*self%m_g
     ! calculate initial liquid to gas freelevel heating rate [W]
     self%qlg_i = self%htc_i*self%csa_z*(self%t_l-self%t_g)
   end subroutine init_flupzrv
@@ -202,8 +208,8 @@ contains
     res(7) = self%t_g-tgeos ! gas temperature
     ! volume equations
     call rfeos_h2o(self%p_g, s_hl, rleos)
-    res(8) = self%v_l-self%m_l/rleos ! liq volume
-    res(9) = self%v_l+self%v_g-self%vol_t! total volume
+    res(8) = self%v_l-self%m_l/rleos       ! liq volume
+    res(9) = self%v_l+self%v_g-self%vol_t  ! total volume
     ! 
   end subroutine calc_res_flupzrv
 

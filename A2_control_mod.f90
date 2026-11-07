@@ -423,11 +423,11 @@ module control_mod
         tfound = .FALSE. ! signal for t is found?
         do j = 1, system_glo%numsgnl
           if(system_glo%fluid%bndcs(i)%sig_p==system_glo%signals(j)%id) then
-            system_glo%fluid%bndcs(i)%pf = system_glo%signals(j)%val
+            system_glo%fluid%bndcs(i)%p_f = system_glo%signals(j)%val
             pfound = .TRUE.
           end if
           if(system_glo%fluid%bndcs(i)%sig_t==system_glo%signals(j)%id) then
-            system_glo%fluid%bndcs(i)%tf = system_glo%signals(j)%val
+            system_glo%fluid%bndcs(i)%t_f = system_glo%signals(j)%val
             tfound = .TRUE.
           end if
           if(pfound .and. tfound) exit
@@ -709,14 +709,14 @@ module control_mod
         ! fluid temperature
         write(colstr,'(ES18.8e2)')time
         write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
-        write(colstr,'(ES18.8e2)')system_glo%fluid%bndcs(i)%tf
+        write(colstr,'(ES18.8e2)')system_glo%fluid%bndcs(i)%t_f
         write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
         write(otpfu+k,*)''
         k = k + 1
         ! fluid pressure
         write(colstr,'(ES18.8e2)')time
         write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
-        write(colstr,'(ES18.8e2)')system_glo%fluid%bndcs(i)%pf
+        write(colstr,'(ES18.8e2)')system_glo%fluid%bndcs(i)%p_f
         write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
         write(otpfu+k,*)''
         k = k + 1
