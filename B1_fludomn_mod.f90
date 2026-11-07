@@ -17,23 +17,25 @@ module fludomn_mod
 
   type :: fludomn
     !=== Member Variables ===
-    ! number of boundary cells, external junctions
-    integer(c_int) :: nbndc, njunc, npzrv
-    ! pressurizer vessel object
-    type(flupzrv), allocatable :: pzrvs(:)
+    ! number of fluid components
+    integer(c_int) :: nbndc, nbrch, njunc, npzrv
     ! array storing boundary cell objects
     type(flubndc), allocatable :: bndcs(:)
+    ! array storing branch cell objects
+    type(flubrch), allocatable :: brchs(:)
     ! array storing junction objects
     type(flujunc), allocatable :: juncs(:)
+    ! array storing pressurizer vessel object
+    type(flupzrv), allocatable :: pzrvs(:)
     ! array storing junction connection information
     character(len=20), allocatable:: f_ids(:), t_ids(:)
     character(len=20), allocatable:: f_typ(:), t_typ(:)
     integer(c_int), allocatable   :: f_idx(:), t_idx(:)
 
-    
   contains
     !=== Member Procedures ===
     procedure :: init_bndcs
+    procedure :: init_brchs
     procedure :: init_juncs
     procedure :: init_pzrv
     procedure :: init_fludomn
@@ -57,6 +59,22 @@ contains
     allocate(self%bndcs(self%nbndc))
     self%bndcs = bndc_arr
   end subroutine init_bndcs
+
+  ! initialize fluid branch cells
+  subroutine init_brchs(self, brch_arr)
+    !======= Declarations =========
+    implicit none
+    !=== I/0 variables ===
+    class(fludomn), intent(inout) :: self
+    class(flubndc), intent(in)    :: brch_arr(:)
+    !=== local variables ===
+
+    !======= Internals ============
+    ! allocate and assign branch cell array
+    self%nbrch = size(brch_arr)
+    allocate(self%brchs(self%nbrch))
+    self%brchs = brch_arr
+  end subroutine init_brchs
 
   ! initialize junctions
   subroutine init_juncs(self, junc_arr)
@@ -99,6 +117,7 @@ contains
     neq_pzrv = 9*self%npzrv ! 9 equations for each pvessel
   end subroutine init_pzrv
 
+
   ! initialize fluid domain
   subroutine init_fludomn(self)
     !======= Declarations =========
@@ -135,6 +154,9 @@ contains
         end if
       end do
       ! if connected with branch
+      do i = 1, self%nbrch
+
+      end do
 
       ! under aktiv development ...
 
@@ -260,13 +282,14 @@ contains
     real(c_double), intent(out) :: res(:)
     !=== local variables ===
     real(c_double) :: mdot
-    real(c_double) :: hg, hl, mg, ml
+    real(c_double) :: s_hf
     integer(c_int) :: i, j, k
     !======= Internals ============
     ! calculate the mass and energy transport between fluid components
     do i = 1, self%npzrv
       ! initialization of pvessels inlets/outlets
-      self%pzrvs(i)%wl_su  = 0.d0
+      self%pzrvs(i)%wl_in  = 0.d0
+      self%pzrvs(i)%wl_ex  = 0.d0
       self%pzrvs(i)%wg_in  = 0.d0
       self%pzrvs(i)%wg_ex  = 0.d0
       self%pzrvs(i)%wlhl_su= 0.d0
@@ -274,6 +297,30 @@ contains
       self%pzrvs(i)%wghg_ex= 0.d0
     end do
     do j = 1, self%njunc
+      mdot = self%juncs(j)%mdot
+      if(mdot>0.d0) then
+        ! effects on the 'from' component
+        i = self%f_idx(j)
+        select case(self%f_typ(j))
+          case('bndc')
+            s_hf = self%bndcs(i)%s_hf
+          case('brch')
+            self%brchs(i)%wf_ex = self%brchs(i)%wf_ex + mdot
+            s_hf = self%brchs(i)%h_f/self%brchs(i)%m_f
+            self%brchs(i)%wfhf_ex = self%brchs(i)%wfhf_ex + mdot*s_hf
+          case('pzrv-g')
+            self%pzrvs(i)%wg_ex = self%pzrvs(i)%wg_ex + mdot
+            s_hf = self%pzrvs(i)%h_g/self%pzrvs(i)%m_g
+            self%pzrvs(i)%wghg_ex=self%pzrvs(i)%wghg_ex + mdot*s_hf 
+          case('pzrv-l')
+            self%pzrvs(i)%wl_su = 
+          case default
+            stop 'under development - 2026/11/07-0947'
+        end select
+        
+      else
+        
+      end if
       ! effects on the 'from' component
       select case(self%f_typ(j))
         case('bndc')    ! from 'bndc'
@@ -282,14 +329,13 @@ contains
           ! under aktiv development ...
         case('pzrv-g')  ! from 'pzrv-g'
           i = self%f_idx(j)
-          mdot = self%juncs(j)%mdot
+          
           self%pzrvs(i)%wg_ex = self%pzrvs(i)%wg_ex + mdot
           hg = self%pzrvs(i)%h_g  ! [J]  ! need to be fixed 2026/11/07  mdot + or - ?
           mg = self%pzrvs(i)%m_g  ! [kg]
           self%pzrvs(i)%wghg_ex=self%pzrvs(i)%wghg_ex + mdot*hg/mg
         case('pzrv-l')  ! from 'pzrv-l'
           i = self%f_idx(j)
-          mdot = self%juncs(j)%mdot
           self%pzrvs(i)%wl_su = self%pzrvs(i)%wl_su - mdot
           hl = self%pzrvs(i)%h_l  ! [J]  ! need to be fixed 2026/11/07  mdot + or - ?
           ml = self%pzrvs(i)%m_l  ! [kg]

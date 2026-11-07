@@ -26,10 +26,10 @@ module flupzrv_mod
     ! volume when freelevel fills lower head, reaches upper head 
     real(c_double) :: vol_l, vol_u
     ! boundary conditions ------------------------------------------
-    ! mass flow rates: gas inlet, gas exit, surge line
-    real(c_double) :: wg_in, wg_ex, wl_su
-    ! enthalpy flow rates: gas inlet, gas exit, surge line
-    real(c_double) :: wghg_in, wghg_ex, wlhl_su
+    ! mass flow rates: gas inlet, gas exit, liq inlet, liq exit
+    real(c_double) :: wg_in, wg_ex, wl_in, wl_ex
+    ! enthalpy flow rates: gas inlet, gas exit, liq inlet, liq exit
+    real(c_double) :: wghg_in, wghg_ex, wlhl_in, wlhl_ex
     ! wall heat transfer rates
     real(c_double) :: qw_g, qw_l
     ! dynamic variables --------------------------------------------
@@ -184,11 +184,11 @@ contains
     ! initialization
     res = 0.d0
     ! mass equations
-    res(1) = self%dmldt-self%wl_su             ! liq mass
+    res(1) = self%dmldt-self%wl_in+self%wl_ex  ! liq mass
     res(2) = self%dmgdt-self%wg_in+self%wg_ex  ! gas mass
     ! energy equations
     self%qlg_i = self%htc_i*self%csa_z*(self%t_l-self%t_g)    ! liq-gas freelevel heating rate
-    res(3) = self%dhldt-self%wlhl_su+self%qlg_i               ! liq energy
+    res(3) = self%dhldt-self%wlhl_in+self%wlhl_ex+self%qlg_i  ! liq energy
     res(4) = self%dhgdt-self%wghg_in+self%wghg_ex-self%qlg_i  ! gas energy
     ! eos equations
     rg   = self%m_g/self%v_g
