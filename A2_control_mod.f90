@@ -20,6 +20,7 @@ module control_mod
 
   !== NAMELIST shared variables ==
   character(len=20) :: id, mat, typ, fcpid, sigid
+  real(c_double) :: pf0, tf0
   !character(len=20) :: mats(maxnlyr) = 'end'
   !== NAMELIST unique variables ==
   ! XTIME variables-------------------------------------------------01
@@ -38,22 +39,25 @@ module control_mod
   real(c_double) :: dia_i, len_t, lvl0, htc_i0
   real(c_double) :: tgas0, tliq0, pgas0
   real(c_double) :: z_tcs(maxtab) = endval
-  ! XPIPE variables-------------------------------------------------04
+  ! XBRCH variables-------------------------------------------------04
+  character(len=20) :: sig_ht
+  real(c_double) :: vol
+  ! XPIPE variables-------------------------------------------------05
   ! temporarily left blank
-  ! XBNDC variables-------------------------------------------------05
-  character(len=20) :: sig_p, sig_t, pf0, tf0
-  ! XJUNC variables-------------------------------------------------06
+  ! XBNDC variables-------------------------------------------------06
+  character(len=20) :: sig_p, sig_t
+  ! XJUNC variables-------------------------------------------------07
   character(len=20) :: fid_f, fid_t
   real(c_double) :: kfac, aorz
-  ! XCORE variables-------------------------------------------------07
-  ! XFUEL variables-------------------------------------------------08
-  ! XCLAD variables-------------------------------------------------09
-  ! XFROD variables-------------------------------------------------10
-  ! XTHBC variables-------------------------------------------------11
+  ! XCORE variables-------------------------------------------------08
+  ! XFUEL variables-------------------------------------------------09
+  ! XCLAD variables-------------------------------------------------10
+  ! XFROD variables-------------------------------------------------11
+  ! XTHBC variables-------------------------------------------------12
   ! temporarily left blank
-  ! XHSTR variables-------------------------------------------------12
+  ! XHSTR variables-------------------------------------------------13
   ! temporarily left blank
-  ! XSGNL variables-------------------------------------------------13
+  ! XSGNL variables-------------------------------------------------14
   real(c_double) :: val = 0.d0
   real(c_double) :: tab(2, maxtab) = endval
   ! ----------------------------------------------------------------
@@ -68,20 +72,22 @@ module control_mod
   NAMELIST /XPZRV/ id    , id_l  , id_g  , mat_l , mat_g , shape , &
                    dia_i , len_t , lvl0  , htc_i0, tgas0 , tliq0 , &
                    pgas0 , z_tcs
-  ! XPIPE namelist 04.----------------------------------------------
-  ! XBNDC namelist 05.----------------------------------------------
+  ! XBRCH namelist 04.----------------------------------------------
+  NAMELIST /XBRCH/ id    , mat   , pf0   , tf0   , vol   , sig_ht  
+  ! XPIPE namelist 05.----------------------------------------------
+  ! XBNDC namelist 06.----------------------------------------------
   NAMELIST /XBNDC/ id    , mat   , typ   , pf0   , tf0   , sig_p , &
                    sig_t
-  ! XJUNC namelist 06.----------------------------------------------
+  ! XJUNC namelist 07.----------------------------------------------
   NAMELIST /XJUNC/ id    , typ   , fid_f , fid_t , sigid , kfac  , &
                    aorz  
-  ! XCORE namelist 07.----------------------------------------------
-  ! XFUEL namelist 08.----------------------------------------------
-  ! XCLAD namelist 09.----------------------------------------------
-  ! XFROD namelist 10.----------------------------------------------
-  ! XTHBC namelist 11.----------------------------------------------
-  ! XHSTR namelist 12.----------------------------------------------
-  ! XSGNL namelist 13.----------------------------------------------
+  ! XCORE namelist 08.----------------------------------------------
+  ! XFUEL namelist 09.----------------------------------------------
+  ! XCLAD namelist 10.----------------------------------------------
+  ! XFROD namelist 11.----------------------------------------------
+  ! XTHBC namelist 12.----------------------------------------------
+  ! XHSTR namelist 13.----------------------------------------------
+  ! XSGNL namelist 14.----------------------------------------------
   NAMELIST /XSGNL/ id    , typ   , val   , tab
   !== NAMELIST information ==
   ! array storing namelist titles
@@ -104,9 +110,11 @@ module control_mod
     !== local variables ==
     character(len=6) :: nml_str
     real(c_double),allocatable :: inp_pzrv(:)
+    real(c_double),allocatable :: inp_brch(:)
     integer(c_int) :: i, j, k
     ! the objects
     type(flupzrv), allocatable :: flupzrv_arr(:)
+    type(flubrch), allocatable :: flubrch_arr(:)
     type(flubndc), allocatable :: flubndc_arr(:)
     type(flujunc), allocatable :: flujunc_arr(:)
     type(ctlsgnl), allocatable :: ctlsgnl_arr(:)
@@ -115,6 +123,7 @@ module control_mod
     nmlstr(idxtime) = '&XTIME'
     nmlstr(idxsolv) = '&XSOLV'
     nmlstr(idxpzrv) = '&XPZRV'
+    nmlstr(idxbrch) = '&XBRCH'
     nmlstr(idxbndc) = '&XBNDC'
     nmlstr(idxjunc) = '&XJUNC'
     nmlstr(idxsgnl) = '&XSGNL'
@@ -252,12 +261,34 @@ module control_mod
           !
         end do
         ! assign the flupzrv_arr(:) to system_glo
-        call system_glo%fluid%init_pzrv(flupzrv_arr)
+        call system_glo%fluid%init_pzrvs(flupzrv_arr)
+        deallocate(flupzrv_arr)
       else
         print*, 'no namelist /XPRZV/ detected for fluid solver'
         continue
       end if
-      deallocate(flupzrv_arr)
+    ! /XBRCH/-----------------------------------------------------------
+      if(numnml(idxbrch)>=1) then
+        allocate(flubrch_arr(numnml(idxbrch)))
+        rewind(inpfu)
+        write(0,'(1X,A15,I3)') '===/XBRCH/=== *', numnml(idxbrch)
+        do i = 1, numnml(idxbrch)
+          sig_ht = 'nosignal'
+          read(inpfu, nml=xbrch)
+          allocate(inp_brch(3))
+          inp_brch(1) = vol
+          inp_brch(2) = tf0
+          inp_brch(3) = pf0
+          call flubrch_arr(i)%init_flubrch(id, mat, sig_ht, inp_brch)
+          deallocate(inp_brch)
+        end do
+        ! assign the flubrch_arr(:) to system_glo
+        call system_glo%fluid%init_brchs(flubrch_arr)
+        deallocate(flubrch_arr)
+      else
+        print*, 'no namelist /XBRCH/ detected for fluid solver'
+        continue
+      end if
     ! /XBNDC/-----------------------------------------------------------
       if(numnml(idxbndc)>=1) then
         allocate(flubndc_arr(numnml(idxbndc)))
@@ -279,11 +310,11 @@ module control_mod
         end do
         ! assign the flubndc_arr(:) to system_glo
         call system_glo%fluid%init_bndcs(flubndc_arr)
+        deallocate(flubndc_arr)
       else
         print*, 'no namelist /XBNDC/ detected for fluid solver'
         continue
       end if 
-      deallocate(flubndc_arr)
     ! /XJUNC/-----------------------------------------------------------
       if(numnml(idxjunc)>=1) then
         allocate(flujunc_arr(numnml(idxjunc)))
@@ -295,7 +326,6 @@ module control_mod
           ! read different types of junctions seperately
           select case (typ)
             case('junc_flow', 'junc_pump')
-              call flujunc_arr(i)%init_flujunc(id, typ, fid_f, fid_t)
               flujunc_arr(i)%sig = sigid
             case('junc_orfz')
               flujunc_arr(i)%kfac = kfac
@@ -316,6 +346,7 @@ module control_mod
       end if 
       neq_tot = neq_tot + neq_mdot
       neq_tot = neq_tot + neq_pzrv
+      neq_tot = neq_tot + neq_brch
       call system_glo%fluid%init_fludomn()
     end if
     ! end of solve_fluid section =========================================
@@ -465,6 +496,16 @@ module control_mod
           end if
         end do
       end do
+      ! update the electric heater within branch
+      do i = 1, system_glo%fluid%nbrch
+        do j = 1, system_glo%numsgnl
+          if(system_glo%fluid%brchs(i)%sig_ht==system_glo%signals(j)%id) then
+            system_glo%fluid%brchs(i)%q_htr = system_glo%signals(j)%val
+            exit
+          end if
+        end do
+      end do
+
     end if
     ! patch the signal values related to solid domain
     ! now under development...
@@ -544,7 +585,7 @@ module control_mod
       ! open output .dat files related to pressure vessel fluid
       do i = 1, system_glo%fluid%npzrv
         ! fluid temperature
-        write(fileid,110) 'pzrv-fluidtemperature-',ADJUSTL(TRIM(system_glo%fluid%pzrvs(i)%id)),'.dat'
+        write(fileid,110) 'pzrv-temperature-',ADJUSTL(TRIM(system_glo%fluid%pzrvs(i)%id)),'.dat'
         open(unit=otpfu+k, file=ADJUSTL(TRIM(path4outdir))//'/'//'fluid'//'/'//ADJUSTL(TRIM(fileid)), &
         status='new', form='formatted')
         colid = 'time'
@@ -556,7 +597,7 @@ module control_mod
         write(otpfu+k,*)''
         k = k + 1
         ! fluid mass
-        write(fileid,110) 'pzrv-fluidmass-',ADJUSTL(TRIM(system_glo%fluid%pzrvs(i)%id)),'.dat'
+        write(fileid,110) 'pzrv-mass-',ADJUSTL(TRIM(system_glo%fluid%pzrvs(i)%id)),'.dat'
         open(unit=otpfu+k, file=ADJUSTL(TRIM(path4outdir))//'/'//'fluid'//'/'//ADJUSTL(TRIM(fileid)), &
         status='new', form='formatted')
         colid = 'time'
@@ -568,7 +609,7 @@ module control_mod
         write(otpfu+k,*)''
         k = k + 1
         ! fluid volume
-        write(fileid,110) 'pzrv-fluidvolume-',ADJUSTL(TRIM(system_glo%fluid%pzrvs(i)%id)),'.dat'
+        write(fileid,110) 'pzrv-volume-',ADJUSTL(TRIM(system_glo%fluid%pzrvs(i)%id)),'.dat'
         open(unit=otpfu+k, file=ADJUSTL(TRIM(path4outdir))//'/'//'fluid'//'/'//ADJUSTL(TRIM(fileid)), &
         status='new', form='formatted')
         colid = 'time'
@@ -611,6 +652,39 @@ module control_mod
             write(otpfu+k,'(A18)',advance='no')colid
           end do
         end if
+        k = k + 1
+      end do
+      ! open output .dat files related to branch fluid
+      do i = 1, system_glo%fluid%nbrch
+        ! fluid temperature
+        write(fileid,110) 'brch-temperature-',ADJUSTL(TRIM(system_glo%fluid%brchs(i)%id)),'.dat'
+        open(unit=otpfu+k, file=ADJUSTL(TRIM(path4outdir))//'/'//'fluid'//'/'//ADJUSTL(TRIM(fileid)), &
+        status='new', form='formatted')
+        colid = 'time'
+        write(otpfu+k,'(A18)',advance='no')colid
+        colid = 'temperature'
+        write(otpfu+k,'(A18)',advance='no')colid
+        write(otpfu+k,*)''
+        k = k + 1
+        ! fluid mass
+        write(fileid,110) 'brch-mass-',ADJUSTL(TRIM(system_glo%fluid%brchs(i)%id)),'.dat'
+        open(unit=otpfu+k, file=ADJUSTL(TRIM(path4outdir))//'/'//'fluid'//'/'//ADJUSTL(TRIM(fileid)), &
+        status='new', form='formatted')
+        colid = 'time'
+        write(otpfu+k,'(A18)',advance='no')colid
+        colid = 'mass'
+        write(otpfu+k,'(A18)',advance='no')colid
+        write(otpfu+k,*)''
+        k = k + 1
+        ! fluid pressure
+        write(fileid,110) 'brch-pressure-',ADJUSTL(TRIM(system_glo%fluid%brchs(i)%id)),'.dat'
+        open(unit=otpfu+k, file=ADJUSTL(TRIM(path4outdir))//'/'//'fluid'//'/'//ADJUSTL(TRIM(fileid)), &
+        status='new', form='formatted')
+        colid = 'time'
+        write(otpfu+k,'(A18)',advance='no')colid
+        colid = 'pressure'
+        write(otpfu+k,'(A18)',advance='no')colid
+        write(otpfu+k,*)''
         k = k + 1
       end do
       ! fluid junction mass flowrates
@@ -781,7 +855,30 @@ module control_mod
           write(otpfu+k,*)''
           k = k + 1
         end if
-        !
+      end do
+      ! branch fluid
+      do i = 1, system_glo%fluid%nbrch
+        ! fluid temperature
+        write(colstr,'(ES18.8e2)')time
+        write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+        write(colstr,'(ES18.8e2)')system_glo%fluid%brchs(i)%t_f
+        write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+        write(otpfu+k,*)''
+        k = k + 1
+        ! fluid mass
+        write(colstr,'(ES18.8e2)')time
+        write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+        write(colstr,'(ES18.8e2)')system_glo%fluid%brchs(i)%m_f
+        write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+        write(otpfu+k,*)''
+        k = k + 1
+        ! fluid pressure
+        write(colstr,'(ES18.8e2)')time
+        write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+        write(colstr,'(ES18.8e2)')system_glo%fluid%brchs(i)%p_f
+        write(otpfu+k,'(A18)',advance='no') ADJUSTL(colstr)
+        write(otpfu+k,*)''
+        k = k + 1 
       end do
       ! fluid junction mass flowrates
       write(colstr,'(ES18.8e2)')time
@@ -841,6 +938,15 @@ module control_mod
         close(unit=otpfu+k) ! fluid pressure
         k = k + 1
         close(unit=otpfu+k) ! liquid level
+        k = k + 1
+      end do
+      ! branch fluid
+      do i = 1, system_glo%fluid%nbrch
+        close(unit=otpfu+k) ! fluid temperature
+        k = k + 1
+        close(unit=otpfu+k) ! fluid mass
+        k = k + 1
+        close(unit=otpfu+k) ! fluid pressure
         k = k + 1
       end do
       ! fluid junction mass flowrates

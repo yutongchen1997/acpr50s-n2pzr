@@ -59,7 +59,6 @@ contains
 
     !======= Internals ============
     call CPU_TIME(t1)
-    
     ! update the signal values
     call evaluate_signals(time) 
     
@@ -76,7 +75,7 @@ contains
     res = 0.d0
     ! fill residual vector
     if(solve_fluid) then
-      allocate(res_fluid(neq_mdot+neq_pzrv))
+      allocate(res_fluid(neq_mdot+neq_pzrv+neq_brch))
       call system_glo%fluid%calc_res_fludomn(res_fluid)
     end if
     res = (/res_fluid/)
@@ -86,7 +85,6 @@ contains
     ! return success
     ierr = 0
     !
-    
     call CPU_TIME(t2)
     !
     return

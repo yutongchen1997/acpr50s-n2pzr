@@ -35,9 +35,9 @@ module fludomn_mod
   contains
     !=== Member Procedures ===
     procedure :: init_bndcs
-    procedure :: init_brchs
     procedure :: init_juncs
-    procedure :: init_pzrv
+    procedure :: init_pzrvs
+    procedure :: init_brchs
     procedure :: init_fludomn
     procedure :: calc_res_fludomn
 
@@ -59,22 +59,6 @@ contains
     allocate(self%bndcs(self%nbndc))
     self%bndcs = bndc_arr
   end subroutine init_bndcs
-
-  ! initialize fluid branch cells
-  subroutine init_brchs(self, brch_arr)
-    !======= Declarations =========
-    implicit none
-    !=== I/0 variables ===
-    class(fludomn), intent(inout) :: self
-    class(flubrch), intent(in)    :: brch_arr(:)
-    !=== local variables ===
-
-    !======= Internals ============
-    ! allocate and assign branch cell array
-    self%nbrch = size(brch_arr)
-    allocate(self%brchs(self%nbrch))
-    self%brchs = brch_arr
-  end subroutine init_brchs
 
   ! initialize junctions
   subroutine init_juncs(self, junc_arr)
@@ -100,7 +84,7 @@ contains
   end subroutine init_juncs
 
   ! initialize pressurizer vessel
-  subroutine init_pzrv(self, pzrv_arr)
+  subroutine init_pzrvs(self, pzrv_arr)
     !======= Declarations =========
     implicit none
     !=== I/0 variables ===
@@ -115,8 +99,25 @@ contains
     self%pzrvs = pzrv_arr
     ! number of pzrv equations
     neq_pzrv = 9*self%npzrv ! 9 equations for each pvessel
-  end subroutine init_pzrv
+  end subroutine init_pzrvs
 
+  ! initialize fluid branch cells
+  subroutine init_brchs(self, brch_arr)
+    !======= Declarations =========
+    implicit none
+    !=== I/0 variables ===
+    class(fludomn), intent(inout) :: self
+    class(flubrch), intent(in)    :: brch_arr(:)
+    !=== local variables ===
+
+    !======= Internals ============
+    ! allocate and assign branch cell array
+    self%nbrch = size(brch_arr)
+    allocate(self%brchs(self%nbrch))
+    self%brchs = brch_arr
+    ! number of brch equations
+    neq_brch = 4*self%nbrch ! 4 equations for each branch
+  end subroutine init_brchs
 
   ! initialize fluid domain
   subroutine init_fludomn(self)
@@ -155,11 +156,18 @@ contains
       end do
       ! if connected with branch
       do i = 1, self%nbrch
-
+        if(self%juncs(j)%fid_f==self%brchs(i)%id) then
+          junc_f = .TRUE.
+          self%f_ids(j) = self%brchs(i)%id
+          self%f_typ(j) = 'brch'
+          self%f_idx(j) = i
+        else if(self%juncs(j)%fid_t==self%bndcs(i)%id) then
+          junc_t = .TRUE.
+          self%t_ids(j) = self%brchs(i)%id
+          self%f_typ(j) = 'brch'
+          self%f_idx(j) = i
+        end if
       end do
-
-      ! under aktiv development ...
-
       ! if connected with pvessel
       if(.NOT.(junc_f)) then
         do i = 1, self%npzrv
@@ -421,25 +429,24 @@ contains
               stop 'under development - 2026/11/07-1707'
           end select
           ! calculate the residuals
-
-
-
-
-
+          !res(k) = (p_1-p_2)*r_f*self%juncs(j)%aorz**(2.d0)/self%juncs(j)%kfac
+          !res(k) = res(k)-self%juncs(j)%mdot*abs(self%juncs(j)%mdot)
+          res(k) = self%juncs(j)%mdot-0.005d0
           k = k + 1
         case default
           stop 'under development - 2026/11/07-1628'
       end select
-
     end do
     !
     ! calculate residuals of equations related to pvessels
+    k = neq_mdot
     do i = 1, self%npzrv
-      call self%pzrvs(i)%calc_res_flupzrv(res(neq_mdot+9*i-8:neq_mdot+9*i))
+      call self%pzrvs(i)%calc_res_flupzrv(res(k+9*i-8:k+9*i))
     end do
     ! caluclate residuals of equations related to branches
+    k = neq_mdot + neq_pzrv
     do i = 1, self%nbrch
-      ! ...
+      call self%brchs(i)%calc_res_flubrch(res(k+4*i-3:k+4*i))
     end do
 
   end subroutine calc_res_fludomn

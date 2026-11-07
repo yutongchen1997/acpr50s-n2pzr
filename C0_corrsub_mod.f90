@@ -170,7 +170,7 @@ contains
     call rfeos_h2o(pf_1, hf, rf_1)
     d_rf = rf-rf_1  ! absolute error
     icount = 0
-    do while(abs(d_rf)/rf>rtol)
+    do while(abs(d_rf)/rf>rtol*0.01)
       if(d_rf>0.d0) then
         ! the estimated density is lower than true value
         pf_2 = pf_1 + 1.d0

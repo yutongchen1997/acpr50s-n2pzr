@@ -28,7 +28,7 @@ module globdat_mod
   ! array sizes
   integer(c_int), parameter :: maxtab = 100    ! maximum look-up table length
   integer(c_int), parameter :: maxnlyr= 10     ! maximum number of htstr layers
-  integer(c_int), parameter :: nnmlst = 13     ! total number of input file namelists
+  integer(c_int), parameter :: nnmlst = 14     ! total number of input file namelists
   integer(c_int), parameter :: nsolvr = 4      ! total number of available solvers
   integer(c_int), parameter :: nfluids= 2      ! total number of available fluids
   ! integers related to file units
@@ -42,16 +42,17 @@ module globdat_mod
   integer(c_int), parameter :: idxtime= 1      ! index of &XTIME - Time
   integer(c_int), parameter :: idxsolv= 2      ! index of &XSOLV - Solver
   integer(c_int), parameter :: idxpzrv= 3      ! index of &XPZRV - Pressurizer vessel
-  integer(c_int), parameter :: idxpipe= 4      ! index of &XPIPE - Pipe
-  integer(c_int), parameter :: idxbndc= 5      ! index of &XBNDC - Fluid boundary cell
-  integer(c_int), parameter :: idxjunc= 6      ! index of &XJUNC - Junction
-  integer(c_int), parameter :: idxcore= 7      ! index of &XCORE - Reactor core
-  integer(c_int), parameter :: idxfuel= 8      ! index of &XFUEL - Fuel pellet
-  integer(c_int), parameter :: idxclad= 9      ! index of &XCLAD - Cladding
-  integer(c_int), parameter :: idxfrod= 10     ! index of &XFROD - Fuel rod
-  integer(c_int), parameter :: idxthbc= 11     ! index of &XTHBC - Thermal B.C.
-  integer(c_int), parameter :: idxhstr= 12     ! index of &XHSTR - Heat Structure
-  integer(c_int), parameter :: idxsgnl= 13     ! index of &XSGNL - Signal
+  integer(c_int), parameter :: idxbrch= 4      ! index of &XBRCH - Branch
+  integer(c_int), parameter :: idxpipe= 5      ! index of &XPIPE - Pipe
+  integer(c_int), parameter :: idxbndc= 6      ! index of &XBNDC - Fluid boundary cell
+  integer(c_int), parameter :: idxjunc= 7      ! index of &XJUNC - Junction
+  integer(c_int), parameter :: idxcore= 8      ! index of &XCORE - Reactor core
+  integer(c_int), parameter :: idxfuel= 9      ! index of &XFUEL - Fuel pellet
+  integer(c_int), parameter :: idxclad= 10     ! index of &XCLAD - Cladding
+  integer(c_int), parameter :: idxfrod= 11     ! index of &XFROD - Fuel rod
+  integer(c_int), parameter :: idxthbc= 12     ! index of &XTHBC - Thermal B.C.
+  integer(c_int), parameter :: idxhstr= 13     ! index of &XHSTR - Heat Structure
+  integer(c_int), parameter :: idxsgnl= 14     ! index of &XSGNL - Signal
   ! indexes of fluid name at fluid counter array numflu(:)
   integer(c_int), parameter :: idxn2g = 1      ! index of N2 fluid (gas phase)
   integer(c_int), parameter :: idxh2o = 2      ! index of H2O fluid
@@ -78,6 +79,7 @@ module globdat_mod
   integer(c_int) :: pindex   ! index of the first pressure equation in Bx=b
   integer(c_int) :: neq_mdot = 0 ! number of equations related to junction mass flow rate
   integer(c_int) :: neq_pzrv = 0 ! number of equations related to pvessel
+  integer(c_int) :: neq_brch = 0 ! number of equations related to branch
   ! solid index data
   integer(c_int) :: neq_hstr = 0 ! number of equations related to heat structure node temperature
   integer(c_int) :: neq_frod = 0 ! number of equations related to fuelrod node temperature

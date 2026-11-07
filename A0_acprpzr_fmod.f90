@@ -31,10 +31,10 @@ program acprpzr
   implicit none
 
   ! time variables
-  real(c_double) :: tout, tret(1)
+  real(c_double) :: tout, tout1, tret(1)
   ! CPU time variables
   real(c_double) :: tic, tac
-  integer(c_int) :: iout, retval
+  integer(c_int) :: iout, retval, ic_opt
   ! integers
   integer, parameter :: myindextype = selected_int_kind(16)
   integer(kind=myindextype) :: neq = 0
@@ -65,8 +65,8 @@ program acprpzr
   call open_output_files()
   ! echo the input file into the output directory
   call echo_input()
-  ! sleep for 3 seconds
-  call SLEEP(3)
+  ! sleep for 1 seconds
+  call SLEEP(1)
   ! convert neq type
   neq = int(neq_tot, kind = myindextype)
 
@@ -83,11 +83,11 @@ program acprpzr
   ! junction mass flowrate [kg/s]
     avtol(i:i+neq_mdot-1) = at(1)
   end if
-  i = i + neq_mdot
+  i = 1 + neq_mdot
   if(neq_pzrv>0) then
-    do j = 1, neq_pzrv
+    do j = 1, system_glo%fluid%npzrv
       ! fluid mass        [kg]
-      avtol(i:i+9*j-8)      = at(1)
+      avtol(i+9*j-9:i+9*j-8)= at(1)
       ! fluid energy      [J]
       avtol(i+9*j-7:i+9*j-6)= at(2)
       ! fluid pressure    [Pa]
@@ -98,22 +98,32 @@ program acprpzr
       avtol(i+9*j-2:i+9*j-1)= at(5)
     end do
   end if
+  i = 1 + neq_mdot + neq_pzrv
+  if(neq_brch>0) then
+    do j = 1, system_glo%fluid%nbrch
+      ! fluid mass        [kg]
+      avtol(i+4*j-4) = at(1)
+      ! fluid energy      [J]
+      avtol(i+4*j-3) = at(2)
+      ! fluid temperature [K]
+      avtol(i+4*j-2) = at(4)
+      ! fluid pressure    [Pa]
+      avtol(i+4*j-1) = at(3)
+    end do
+  end if
   ! ---
   call system_glo%write_to_y_and_yp(yval, ypval)
-  !
   ! create serial vectors
   sunvec_y => FN_VMake_Serial(neq, yval, sunctx)
   if (.not. associated(sunvec_y)) then
     print *, 'ERROR: sunvec = NULL'
     stop 1
   end if
-
   sunvec_yp => FN_VMake_Serial(neq, ypval, sunctx)
   if (.not. associated(sunvec_yp)) then
     print *, 'ERROR: sunvec = NULL'
     stop 1
   end if
-
   sunvec_av => FN_VMake_Serial(neq, avtol, sunctx)
   if (.not. associated(sunvec_av)) then
     print *, 'ERROR: sunvec = NULL'
@@ -218,7 +228,6 @@ program acprpzr
       stop 'program stopped at program acprpzr'
   end select
 
-
   ! Attach the matrix and linear solver
   retval = FIDASetLinearSolver(ida_mem, sunlinsol_LS, sunmat_A); 
   if (retval /= 0) then
@@ -282,6 +291,38 @@ program acprpzr
     print *, 'Error in FIDASetMinStep, retval = ', retval, '; halting'
     stop 1
   end if
+
+  !!!!  YTCHEN - 2026/11/08 - 0025
+  !id_vals( 1) = 0
+  !id_vals( 2) = 1
+  !id_vals( 3) = 1
+  !id_vals( 4) = 1
+  !id_vals( 5) = 1
+  !id_vals( 6) = 0
+  !id_vals( 7) = 0
+  !id_vals( 8) = 0
+  !id_vals( 9) = 0
+  !id_vals(10) = 0
+  !id_vals(11) = 1
+  !id_vals(12) = 1
+  !id_vals(13) = 0
+  !id_vals(14) = 0
+  !sunvec_id => FN_VMake_Serial(neq, id_vals, sunctx)
+  !
+  !retval = FIDASetId(ida_mem, sunvec_id)
+  !if (retval /= 0) then
+  !   print *, 'Error in FIDASetId, retval = ', retval
+  !   stop
+  !end if
+  !
+  !ic_opt = IDA_YA_YDP_INIT              ! y 已知，ydot 待求
+  !tout1  = tstart + 1.0d-0              ! 一致化目标时刻
+  !retval = FIDACalcIC(ida_mem, ic_opt, tout1)
+  !if (retval /= 0) then
+  !   print *, 'FIDACalcIC failed, retval = ', retval; stop
+  !end if
+
+
   !
   iout = 0
   tout = tstart

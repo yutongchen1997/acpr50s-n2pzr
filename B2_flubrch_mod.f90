@@ -46,6 +46,7 @@ module flubrch_mod
   contains
     !=== Member Procedures ===
     procedure :: init_flubrch ! initialize junction parameters
+    procedure :: calc_res_flubrch
   end type flubrch
 
 contains

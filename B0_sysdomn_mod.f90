@@ -215,7 +215,6 @@ contains
                                   self%fluid%brchs(i)%m_f
       end do
     end if
-
   end subroutine read_from_y_and_yp
 
 
