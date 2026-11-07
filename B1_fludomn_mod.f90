@@ -307,15 +307,34 @@ contains
           case('brch')
             self%brchs(i)%wf_ex = self%brchs(i)%wf_ex + mdot
             s_hf = self%brchs(i)%h_f/self%brchs(i)%m_f
-            self%brchs(i)%wfhf_ex = self%brchs(i)%wfhf_ex + mdot*s_hf
+            self%brchs(i)%wfhf_ex=self%brchs(i)%wfhf_ex + mdot*s_hf
           case('pzrv-g')
             self%pzrvs(i)%wg_ex = self%pzrvs(i)%wg_ex + mdot
             s_hf = self%pzrvs(i)%h_g/self%pzrvs(i)%m_g
             self%pzrvs(i)%wghg_ex=self%pzrvs(i)%wghg_ex + mdot*s_hf 
           case('pzrv-l')
-            self%pzrvs(i)%wl_su = 
+            self%pzrvs(i)%wl_ex = self%pzrvs(i)%wl_ex + mdot
+            s_hf = self%pzrvs(i)%h_l/self%pzrvs(i)%m_l
+            self%pzrvs(i)%wlhl_ex=self%pzrvs(i)%wlhl_ex + mdot*s_hf
           case default
             stop 'under development - 2026/11/07-0947'
+        end select
+        ! effects on the 'to' component
+        i = self%t_idx(j)
+        select case(self%t_typ(j))
+          case('bndc')
+            continue
+          case('brch')
+            self%brchs(i)%wf_in = self%brchs(i)%wf_in + mdot
+            self%brchs(i)%wfhf_in=self%brchs(i)%wfhf_in + mdot*s_hf
+          case('pzrv-g')
+            self%pzrvs(i)%wg_in = self%pzrvs(i)%wg_in + mdot
+            self%pzrvs(i)%wghg_in=self%pzrvs(i)%wghg_in + mdot*s_hf
+          case('pzrv-l')
+            self%pzrvs(i)%wl_in = self%pzrvs(i)%wl_in + mdot
+            self%pzrvs(i)%wlhl_in=self%pzrvs(i)%wlhl_in + mdot*s_hf
+          case default
+            stop 'under development - 2026/11/07-1205'
         end select
         
       else
