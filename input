@@ -8,7 +8,7 @@
 ! Time details
 !----- -----1----- -----2----- -----3----- -----4----- -----5----- -----6----- -----7----- -----8----- -----9----- -----0-----
 !!!!!!!  tstart(s)     tend(s)      dtotp(s)       dtini(s)       dtmin(s)       dtmax(s)
- &XTIME  tstart=0.d00  tend=1.d04   dtotp=0.5d-0   dtini=1.0d-10  dtmin=1.0d-15  dtmax=1.0d-1 /
+ &XTIME  tstart=0.d00  tend=1.d04   dtotp=5.0d-0   dtini=1.0d-10  dtmin=1.0d-15  dtmax=1.0d-1 /
 !!!!!!!  solvers 1.       2.       rt(-)       at(:)                                     mxstps      maxnef     maxcor
  &XSOLV  solver='fluid'            rt=1.0d-06  at(1)=1.0d-6,1.0d-6,1.0d-6,1.0d-6,1.0d-6  mxstps=2000 maxnef=10  maxcor=10
 !!!!!!!  solopt    eosopt

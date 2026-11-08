@@ -156,7 +156,7 @@ contains
     real(c_double) :: k_rp    ! the slope
     integer(c_int) :: icount
 
-    !======= ,:Internals ============
+    !======= Internals ============
     if(rf>rc_h2o) then
       ! liq or mix, cannot be gas
       ! initial guess of pf_1 assuming saturated-liquid

@@ -91,5 +91,56 @@ contains
 
   end function resrob
 
+! ----------------------------------------------------------------------
+! set_id_vector: a subroutine that builds the IDA variable ID vector:  
+! = 1.0 means differential variable - (ODE)
+! = 0.0 means algebraic variable    - (AE)
+! output - the processed id vector
+! ----------------------------------------------------------------------
+  subroutine set_id_vector(id)
+  
+  !======= Declarations =========
+  implicit none
+  !== output variables ==
+  real(c_double), intent(out) :: id(:)
+  !== local variables ==
+  integer(c_int) :: i, j, k
+
+  !======= Internals ============
+  if(solve_fluid) then
+    ! mdots - ODE
+    do i = 1, neq_mdot
+      id(i) = 0.0    
+    end do
+    ! equations relative to pzrvs
+    do i = neq_mdot+1, neq_mdot+neq_pzrv
+      select case(mod(i-neq_mdot, 9))
+        case(1,2,3,4)
+          id(i) = 1.d0  ! mass, energy - ODE
+        case(5,6,7,8,0)
+          id(i) = 0.d0  ! pressure, temperature, volume - AE
+        case default
+          print*, 'under aktiv development 2026/11/08-2030'
+      end select
+    end do
+    ! equations relative to brchs
+    do i = neq_mdot+neq_pzrv+1, neq_mdot+neq_pzrv+neq_brch
+      select case(mod(i-neq_mdot-neq_pzrv, 4))
+        case(1,2)
+          id(i) = 1.d0
+        case(3,4)
+          id(i) = 0.d0
+        case default
+          print*, 'under aktiv development 2026/11/08-2039'
+      end select
+    end do
+  end if
+
+  end subroutine set_id_vector
+
+
+
+
+
 end module rescomp_mod
 ! ------------------------------------------------------------------
