@@ -113,13 +113,22 @@ contains
     res = 0.d0
     ! mass equation
     res(1) = self%dmfdt-self%wf_in+self%wf_ex
+    print*, 'self%wf_in-brch', self%wf_in, self%wf_ex
     ! energy equation
     res(2) = self%dhfdt-self%wfhf_in+self%wfhf_ex-self%q_htr
     ! eos equations
-    call tfeos_h2o(self%p_f, self%s_hf, tfeos)
-    res(3) = self%t_f-tfeos
-    call pfeos_h2o(self%r_f, self%s_hf, pfeos)
-    res(4) = self%p_f-pfeos
+    select case (self%mat)
+      case('h2o')
+        call tfeos_h2o(self%p_f, self%s_hf, tfeos)
+        call pfeos_h2o(self%r_f, self%s_hf, pfeos)
+      case('n2g')
+        call tgeos_n2g(eosopt, self%p_f, self%s_hf, tfeos)
+        call pgeos_n2g(eosopt, self%r_f, self%s_hf, pfeos)
+      case default
+        print*, 'under development 2026/11/08-1101'
+      end select
+      res(3) = self%t_f-tfeos
+      res(4) = self%p_f-pfeos
   end subroutine calc_res_flubrch
 
 end module flubrch_mod

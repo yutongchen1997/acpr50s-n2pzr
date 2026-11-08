@@ -191,6 +191,7 @@ contains
     ! mass equations
     res(1) = self%dmldt-self%wl_in+self%wl_ex  ! liq mass
     res(2) = self%dmgdt-self%wg_in+self%wg_ex  ! gas mass
+    print*, 'self%wg_in-pzrv', self%wg_in, self%wg_ex
     ! energy equations
     self%qlg_i = self%htc_i*self%csa_z*(self%t_l-self%t_g)    ! liq-gas freelevel heating rate
     res(3) = self%dhldt-self%wlhl_in+self%wlhl_ex+self%qlg_i  ! liq energy

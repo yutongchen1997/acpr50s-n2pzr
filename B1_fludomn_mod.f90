@@ -306,9 +306,16 @@ contains
       self%pzrvs(i)%wghg_in= 0.d0
       self%pzrvs(i)%wghg_ex= 0.d0
     end do
+    do i = 1, self%nbrch
+      self%brchs(i)%wf_in  = 0.d0
+      self%brchs(i)%wf_ex  = 0.d0
+      self%brchs(i)%wfhf_in= 0.d0
+      self%brchs(i)%wfhf_ex= 0.d0
+    end do
     k = 1
     do j = 1, self%njunc
       mdot = self%juncs(j)%mdot
+      print*, 'mdot', mdot
       if(mdot>0.d0) then
         ! effects on the 'from' component
         i = self%f_idx(j)
@@ -430,7 +437,7 @@ contains
           end select
           ! calculate the residuals
           
-          res(k) = (p_1-p_2)*r_f*self%juncs(j)%aorz**2.d0/self%juncs(j)%kfac-mdot*abs(mdot)
+          res(k) = (p_1-p_2)/1.d6-mdot
           k = k + 1
         case default
           stop 'under development - 2026/11/07-1628'

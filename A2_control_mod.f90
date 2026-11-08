@@ -650,6 +650,7 @@ module control_mod
           do j = 1, system_glo%fluid%pzrvs(i)%n_tcs
             write(colid,120)'tc-[',j,']'
             write(otpfu+k,'(A18)',advance='no')colid
+            write(otpfu+k,*)''
           end do
         end if
         k = k + 1
