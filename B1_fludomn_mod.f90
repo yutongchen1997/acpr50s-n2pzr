@@ -434,7 +434,7 @@ contains
             case default
               stop 'under development - 2026/11/07-1707'
           end select
-          ! calculate the residuals
+          ! calculate the residuals relative to junctions
           !print*, 'mdot',  mdot
           res(k) = (p_1-p_2)-self%juncs(j)%kfac*mdot*abs(mdot)/r_f/self%juncs(j)%aorz**2.d0
           res(k) = res(k) - 0.1d0/self%juncs(j)%aorz*self%juncs(j)%dmdotdt
