@@ -113,7 +113,6 @@ contains
     res = 0.d0
     ! mass equation
     res(1) = self%dmfdt-self%wf_in+self%wf_ex
-    print*, 'self%wf_in-brch', self%wf_in, self%wf_ex
     ! energy equation
     res(2) = self%dhfdt-self%wfhf_in+self%wfhf_ex-self%q_htr
     ! eos equations

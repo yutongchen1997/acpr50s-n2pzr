@@ -315,7 +315,6 @@ contains
     k = 1
     do j = 1, self%njunc
       mdot = self%juncs(j)%mdot
-      print*, 'mdot', mdot
       if(mdot>0.d0) then
         ! effects on the 'from' component
         i = self%f_idx(j)
@@ -436,8 +435,9 @@ contains
               stop 'under development - 2026/11/07-1707'
           end select
           ! calculate the residuals
-          
-          res(k) = (p_1-p_2)/1.d6-mdot
+          !print*, 'mdot',  mdot
+          res(k) = (p_1-p_2)-self%juncs(j)%kfac*mdot*abs(mdot)/r_f/self%juncs(j)%aorz**2.d0
+          res(k) = res(k) - 0.1d0/self%juncs(j)%aorz*self%juncs(j)%dmdotdt
           k = k + 1
         case default
           stop 'under development - 2026/11/07-1628'

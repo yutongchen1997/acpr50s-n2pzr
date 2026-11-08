@@ -8,9 +8,9 @@
 ! Time details
 !----- -----1----- -----2----- -----3----- -----4----- -----5----- -----6----- -----7----- -----8----- -----9----- -----0-----
 !!!!!!!  tstart(s)     tend(s)      dtotp(s)       dtini(s)       dtmin(s)       dtmax(s)
- &XTIME  tstart=0.d00  tend=10.d00  dtotp=1.d-0    dtini=1.0d-03  dtmin=1.0d-15  dtmax=1.0d-1 /
+ &XTIME  tstart=0.d00  tend=1.d04   dtotp=0.5d-0   dtini=1.0d-10  dtmin=1.0d-15  dtmax=1.0d-1 /
 !!!!!!!  solvers 1.       2.       rt(-)       at(:)                                     mxstps      maxnef     maxcor
- &XSOLV  solver='fluid'            rt=1.0d-06  at(1)=1.0d-6,1.0d-6,1.0d-6,1.0d-6,1.0d-6  mxstps=1000 maxnef=10  maxcor=10
+ &XSOLV  solver='fluid'            rt=1.0d-06  at(1)=1.0d-6,1.0d-6,1.0d-6,1.0d-6,1.0d-6  mxstps=2000 maxnef=10  maxcor=10
 !!!!!!!  solopt    eosopt
          solopt=1  eosopt='nist'/
 !----- -----1----- -----2----- -----3----- -----4----- -----5----- -----6----- -----7----- -----8----- -----9----- -----0-----
@@ -22,22 +22,22 @@
  !!!!!!!  dia_i          len_t         lvl0         htc_i0
           dia_i=0.330d0  len_t=2.37d0  lvl0=0.21d0  htc_i0=20.d0
  !!!!!!!  tgas0           tliq0           pgas0
-          tgas0=300.00d0  tliq0=300.00d0  pgas0=8.3d6 
+          tgas0=300.00d0  tliq0=300.00d0  pgas0=8.30d6 
  !!!!!!!  z_tcs(:)  
           z_tcs(1)=0.415d0, 0.815d0, 1.215d0, 1.615d0, 2.015d0 /
 ! The fluid boundary cells
 !!!!!!!  id         mat        pf0        tf0           vol         sig_ht
- &XBRCH  id='TANK'  mat='n2g'  pf0=8.3d6  tf0=353.15d0  vol=0.47d0  sig_ht='q_heater' /
+ &XBRCH  id='TANK'  mat='h2o'  pf0=8.3d6  tf0=353.15d0  vol=0.47d0  sig_ht='q_heater' /
 ! The junctions
 !!!!!!!  id          typ              fid_f          fid_t        kfac       aorz
- &XJUNC  id='JUNC1'  typ='junc_orfz'  fid_f='TANK'   fid_t='GAS'  kfac=1.d3  aorz=5.73d-04 /
+ &XJUNC  id='JUNC1'  typ='junc_orfz'  fid_f='TANK'   fid_t='LIQ'  kfac=1.d0  aorz=5.73d-04 /
 !----- -----1----- -----2----- -----3----- -----4----- -----5----- -----6----- -----7----- -----8----- -----9----- -----0-----
 ! Signals
 !----- -----1----- -----2----- -----3----- -----4----- -----5----- -----6----- -----7----- -----8----- -----9----- -----0-----
 !!!!!!! id            typ          val
- &XSGNL id='p_tank'   typ='const'  val=8.3d6  /
+ &XSGNL id='p_tank'   typ='const'  val= 8.3d6  /
 !!!!!!! id            typ          val
- &XSGNL id='q_heater' typ='const'  val=32.0d3 /
+ &XSGNL id='q_heater' typ='const'  val= 32.0d3 /
 !!!!!!! id            typ       
  &XSGNL id='t_tank'   typ='tdsig'
 !!!!!!! tab 

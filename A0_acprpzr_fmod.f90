@@ -293,35 +293,35 @@ program acprpzr
   end if
 
   !!!  YTCHEN - 2026/11/08 - 0025
-  !  id_vals( 1) = 0
-  !  id_vals( 2) = 1
-  !  id_vals( 3) = 1
-  !  id_vals( 4) = 1
-  !  id_vals( 5) = 1
-  !  id_vals( 6) = 0
-  !  id_vals( 7) = 0
-  !  id_vals( 8) = 0
-  !  id_vals( 9) = 0
-  !  id_vals(10) = 0
-  !  id_vals(11) = 1
-  !  id_vals(12) = 1
-  !  id_vals(13) = 0
-  !  id_vals(14) = 0
+    id_vals( 1) = 0
+    id_vals( 2) = 1
+    id_vals( 3) = 1
+    id_vals( 4) = 1
+    id_vals( 5) = 1
+    id_vals( 6) = 0
+    id_vals( 7) = 0
+    id_vals( 8) = 0
+    id_vals( 9) = 0
+    id_vals(10) = 0
+    id_vals(11) = 1
+    id_vals(12) = 1
+    id_vals(13) = 0
+    id_vals(14) = 0
   !  
-  !  sunvec_id => FN_VMake_Serial(neq, id_vals, sunctx)
-  !  if (.not. associated(sunvec_id)) then
-  !     print *, 'ERROR: sunvec_id = NULL'
-  !     stop
-  !  end if
-  !  retval = FIDASetId(ida_mem, sunvec_id)
-  !  if (retval /= 0) then
-  !    print *, 'Error in FIDASetId, retval = ', retval
-  !    stop
-  !  end if
-  !  retval = FIDASetSuppressAlg(ida_mem, 1_c_int)
-  !   if (retval /= 0) then
-  !      print *, 'Warning: FIDASetSuppressAlg returned retval = ', retval
-  !   end if
+    sunvec_id => FN_VMake_Serial(neq, id_vals, sunctx)
+    if (.not. associated(sunvec_id)) then
+       print *, 'ERROR: sunvec_id = NULL'
+       stop
+    end if
+    retval = FIDASetId(ida_mem, sunvec_id)
+    if (retval /= 0) then
+      print *, 'Error in FIDASetId, retval = ', retval
+      stop
+    end if
+    retval = FIDASetSuppressAlg(ida_mem, 1_c_int)
+     if (retval /= 0) then
+        print *, 'Warning: FIDASetSuppressAlg returned retval = ', retval
+     end if
   !  
   !  ic_opt = IDA_YA_YDP_INIT              ! y 已知，ydot 待求
   !  tout1  = tstart + 1.0d-3              ! 一致化目标时刻
