@@ -184,7 +184,6 @@ contains
     class(flupzrv), intent(inout) :: self
     real(c_double), intent(out) :: res(:)
     !=== local variables ===
-    real(c_double) :: rg, s_hg, s_hl
     real(c_double) :: pgeos, rleos, tgeos, tleos
     !======= Internals ============
     ! initialization
@@ -197,17 +196,14 @@ contains
     res(3) = self%dhldt-self%wlhl_in+self%wlhl_ex+self%qlg_i  ! liq energy
     res(4) = self%dhgdt-self%wghg_in+self%wghg_ex-self%qlg_i  ! gas energy
     ! eos equations
-    rg   = self%m_g/self%v_g
-    s_hg = self%h_g/self%m_g
-    s_hl = self%h_l/self%m_l
-    call pgeos_n2g(eosopt, rg, s_hg, pgeos)
-    call tfeos_h2o(self%p_g, s_hl, tleos)
-    call tgeos_n2g(eosopt, self%p_g, s_hg, tgeos)
+    call pgeos_n2g(eosopt, self%r_g, self%s_hg, pgeos)
+    call tfeos_h2o(self%p_g, self%s_hl, tleos)
+    call tgeos_n2g(eosopt, self%p_g, self%s_hg, tgeos)
     res(5) = self%p_g-pgeos ! gas pressure
     res(6) = self%t_l-tleos ! liq temperature
     res(7) = self%t_g-tgeos ! gas temperature
     ! volume equations
-    call rfeos_h2o(self%p_g, s_hl, rleos)
+    call rfeos_h2o(self%p_g, self%s_hl, rleos)
     res(8) = self%v_l-self%m_l/rleos       ! liq volume
     res(9) = self%v_l+self%v_g-self%vol_t  ! total volume
     ! 

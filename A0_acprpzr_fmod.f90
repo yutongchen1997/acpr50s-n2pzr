@@ -292,35 +292,35 @@ program acprpzr
     stop 1
   end if
 
-  !!!!  YTCHEN - 2026/11/08 - 0025
-  !id_vals( 1) = 0
-  !id_vals( 2) = 1
-  !id_vals( 3) = 1
-  !id_vals( 4) = 1
-  !id_vals( 5) = 1
-  !id_vals( 6) = 0
-  !id_vals( 7) = 0
-  !id_vals( 8) = 0
-  !id_vals( 9) = 0
-  !id_vals(10) = 0
-  !id_vals(11) = 1
-  !id_vals(12) = 1
-  !id_vals(13) = 0
-  !id_vals(14) = 0
-  !sunvec_id => FN_VMake_Serial(neq, id_vals, sunctx)
-  !
-  !retval = FIDASetId(ida_mem, sunvec_id)
-  !if (retval /= 0) then
-  !   print *, 'Error in FIDASetId, retval = ', retval
-  !   stop
-  !end if
-  !
-  !ic_opt = IDA_YA_YDP_INIT              ! y 已知，ydot 待求
-  !tout1  = tstart + 1.0d-0              ! 一致化目标时刻
-  !retval = FIDACalcIC(ida_mem, ic_opt, tout1)
-  !if (retval /= 0) then
-  !   print *, 'FIDACalcIC failed, retval = ', retval; stop
-  !end if
+  !!!  YTCHEN - 2026/11/08 - 0025
+  id_vals( 1) = 0
+  id_vals( 2) = 1
+  id_vals( 3) = 1
+  id_vals( 4) = 1
+  id_vals( 5) = 1
+  id_vals( 6) = 0
+  id_vals( 7) = 0
+  id_vals( 8) = 0
+  id_vals( 9) = 0
+  id_vals(10) = 0
+  id_vals(11) = 1
+  id_vals(12) = 1
+  id_vals(13) = 0
+  id_vals(14) = 0
+  sunvec_id => FN_VMake_Serial(neq, id_vals, sunctx)
+  
+  retval = FIDASetId(ida_mem, sunvec_id)
+  if (retval /= 0) then
+     print *, 'Error in FIDASetId, retval = ', retval
+     stop
+  end if
+  
+  ic_opt = IDA_YA_YDP_INIT              ! y 已知，ydot 待求
+  tout1  = tstart + 1.0d-3              ! 一致化目标时刻
+  retval = FIDACalcIC(ida_mem, ic_opt, tout1)
+  if (retval /= 0) then
+     print *, 'FIDACalcIC failed, retval = ', retval; stop
+  end if
 
 
   !
@@ -362,6 +362,7 @@ program acprpzr
     retval = FIDASolve(ida_mem, tout, tret, sunvec_y, sunvec_yp, IDA_NORMAL)
     if (retval < 0) then
       print *, 'Error in FIDASolve, retval = ', retval, '; halting'
+      call print_output_files(tret(1))
       stop 1
     end if
     ! output current data
@@ -378,14 +379,24 @@ program acprpzr
   ! close output files
   call close_output_files()
   ! free memory
+  print*, 'probe-382'
   call FIDAFree(ida_mem)
+  print*, 'probe-384'
   retval = FSUNNonlinSolFree(sunnonlin_NLS)
   retval = FSUNLinSolFree(sunlinsol_LS)
+  print*, 'probe-3850'
   call FSUNMatDestroy(sunmat_A)
+  print*, 'probe-3851'
   call FN_VDestroy(sunvec_y)
+  print*, 'probe-3852'
   call FN_VDestroy(sunvec_av)
+  print*, 'probe-3853'
   call FN_VDestroy(sunvec_yp)
+  print*, 'probe-3854'
+  call FN_VDestroy(sunvec_id)
+  print*, 'probe-3855'
   retval = FSUNContext_Free(sunctx)
+  print*, 'probe-3856'
   !
   call CPU_TIME(tac)
   print*, 'total CPU time = ', tac - tic

@@ -53,7 +53,7 @@ contains
     self%pmph = 0.d0
     self%kfac = 0.d0
     self%aorz = 0.d0
-    self%mdot  = 0.d0
+    self%mdot = 0.d0
   end subroutine init_flujunc
 
 end module flujunc_mod

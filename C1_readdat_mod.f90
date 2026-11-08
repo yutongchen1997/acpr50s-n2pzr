@@ -67,7 +67,7 @@ contains
     rewind(n2gfu)
     do i = 1, lenp
       do j = 1, lenh
-        read(n2gfu,'(9F12.5)')p_n2g(i),h_n2g(j),tpf_n2g(1,i,j),&
+        read(n2gfu,'(8F12.5)')p_n2g(i),h_n2g(j),tpf_n2g(1,i,j),&
         tpf_n2g(2,i,j), tpf_n2g(3,i,j), tpf_n2g(4,i,j), tpf_n2g(5,i,j),  &
         tpf_n2g(6,i,j)
       end do

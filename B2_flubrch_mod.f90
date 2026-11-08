@@ -107,20 +107,18 @@ contains
     class(flubrch), intent(inout) :: self
     real(c_double), intent(out) :: res(:)
     !=== local variables ===
-    real(c_double) :: rf, s_hf, tfeos, pfeos
+    real(c_double) :: tfeos, pfeos
     !======= Internals ============
     ! initialization 
     res = 0.d0
     ! mass equation
-    res(1) = self%dmfdt-self%wf_in+self%wfhf_ex
+    res(1) = self%dmfdt-self%wf_in+self%wf_ex
     ! energy equation
     res(2) = self%dhfdt-self%wfhf_in+self%wfhf_ex-self%q_htr
     ! eos equations
-    rf   = self%m_f/self%vol
-    s_hf = self%h_f/self%m_f
-    call tfeos_h2o(self%p_f, s_hf, tfeos)
+    call tfeos_h2o(self%p_f, self%s_hf, tfeos)
     res(3) = self%t_f-tfeos
-    call pfeos_h2o(rf, s_hf, pfeos)
+    call pfeos_h2o(self%r_f, self%s_hf, pfeos)
     res(4) = self%p_f-pfeos
   end subroutine calc_res_flubrch
 

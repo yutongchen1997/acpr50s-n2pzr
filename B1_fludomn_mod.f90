@@ -429,9 +429,8 @@ contains
               stop 'under development - 2026/11/07-1707'
           end select
           ! calculate the residuals
-          !res(k) = (p_1-p_2)*r_f*self%juncs(j)%aorz**(2.d0)/self%juncs(j)%kfac
-          !res(k) = res(k)-self%juncs(j)%mdot*abs(self%juncs(j)%mdot)
-          res(k) = self%juncs(j)%mdot-0.005d0
+          
+          res(k) = (p_1-p_2)*r_f*self%juncs(j)%aorz**2.d0/self%juncs(j)%kfac-mdot*abs(mdot)
           k = k + 1
         case default
           stop 'under development - 2026/11/07-1628'
