@@ -193,8 +193,8 @@ contains
     res(2) = self%dmgdt-self%wg_in+self%wg_ex  ! gas mass
     ! energy equations
     self%qlg_i = self%htc_i*self%csa_z*(self%t_l-self%t_g)    ! liq-gas freelevel heating rate
-    res(3) = self%dhldt-self%wlhl_in+self%wlhl_ex+self%qlg_i  ! liq energy
-    res(4) = self%dhgdt-self%wghg_in+self%wghg_ex-self%qlg_i  ! gas energy
+    res(3) = self%dhldt-self%wlhl_in+self%wlhl_ex+self%qlg_i-self%v_l*self%dpdt  ! liq energy
+    res(4) = self%dhgdt-self%wghg_in+self%wghg_ex-self%qlg_i-self%v_g*self%dpdt  ! gas energy
     ! eos equations
     call pgeos_n2g(eosopt, self%r_g, self%s_hg, pgeos)
     call tfeos_h2o(self%p_g, self%s_hl, tleos)
