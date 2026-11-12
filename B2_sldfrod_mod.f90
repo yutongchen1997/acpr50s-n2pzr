@@ -19,13 +19,14 @@ module sldfrod_mod
     character(len=20) :: id, id_f, id_g, id_c
     ! id string of coupling fluid pipe component
     character(len=20) :: id_pipe
-    ! coupling fluid pipe node
+    ! coupling fluid pipe node, multiplier (fuel rod number)
+    integer(c_int) :: nz, mltpl
     ! fuel pellet
-    
+    type(fuel) :: fuel
     ! gasgap
-    
+    type(ggap) :: ggap
     ! cladding
-  
+    type(clad) :: clad
   contains
     !=== Member Procedures ===
     procedure :: init_sldfrod
