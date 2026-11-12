@@ -10,6 +10,7 @@ module sysdomn_mod
   !======= Inclusions =========
   use fludomn_mod
   use slddomn_mod
+  use ctlsgnl_mod
 
   !======= Declarations =========
   implicit none

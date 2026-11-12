@@ -7,7 +7,7 @@
 ! ------------------------------------------------------------------
 module flubndc_mod
   !======= Inclusions =========
-  use ctlsgnl_mod
+  use corrsub_mod
 
   !======= Declarations =========
   implicit none

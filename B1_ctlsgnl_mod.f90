@@ -7,7 +7,7 @@
 ! ------------------------------------------------------------------
 module ctlsgnl_mod
   !======= Inclusions ===========
-  use corrsub_mod
+  use, intrinsic :: iso_c_binding
 
   !======= Declarations =========
   implicit none

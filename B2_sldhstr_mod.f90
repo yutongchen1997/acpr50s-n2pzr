@@ -7,7 +7,7 @@
 ! ------------------------------------------------------------------
 module heatstr_mod
   !======= Inclusions =========
-  use ctlsgnl_mod
+  use corrsub_mod
 
 
   !======= Declarations =========
